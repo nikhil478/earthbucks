@@ -149,6 +149,17 @@ func FromRandomFixed(size int) (*FixedBuf, error) {
 	return NewFixedBuf(size, data)
 }
 
+
+// FromBuf initializes a FixedBuf from a given buffer
+func FromBufFixed(size int, buf []byte) (fb *FixedBuf, err error) {
+    if len(buf) != size {
+        return nil, nil
+    }
+    fb, err = NewFixedBuf(size, buf)
+    copy(fb.buf, buf)
+    return fb , err
+}
+
 // IsValidHex checks if a string is a valid hex value.
 func IsValidHex(hexStr string) bool {
 	_, err := hex.DecodeString(hexStr)
