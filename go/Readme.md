@@ -1,0 +1,2 @@
+Go Package for Earthbucks Blockchain
+The plan is to begin with the earthbucks-lib package, using the TypeScript package as a reference. Initially, we will focus on implementing all the files related to data structures.
