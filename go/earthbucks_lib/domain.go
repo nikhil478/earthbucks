@@ -18,7 +18,7 @@ func NewDomain(domainStr string) *Domain {
 }
 
 // FromString creates a Domain from a string.
-func FromString(domainStr string) *Domain {
+func FromStringDomain(domainStr string) *Domain {
 	return NewDomain(domainStr)
 }
 

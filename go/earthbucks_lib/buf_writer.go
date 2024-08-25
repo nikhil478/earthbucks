@@ -3,7 +3,6 @@ package earthbucks
 import (
 	"bytes"
 	"encoding/binary"
-	"math/big"
 )
 
 // BufWriter is a buffer writer that accumulates slices of bytes.
@@ -40,56 +39,48 @@ func (w *BufWriter) Write(buf []byte) *BufWriter {
 	return w
 }
 
-// WriteU8 writes a single byte (uint8) to the buffer.
-func (w *BufWriter) WriteU8(u8 uint8) *BufWriter {
-	buf := []byte{u8}
-	w.Write(buf)
+func (w *BufWriter) WriteU8BE(u8 *U8) *BufWriter {
+	w.Write(u8.ToBEBuf())
 	return w
 }
 
-// WriteU16BE writes a 16-bit unsigned integer in big-endian order.
-func (w *BufWriter) WriteU16BE(u16 uint16) *BufWriter {
-	buf := make([]byte, 2)
-	binary.BigEndian.PutUint16(buf, u16)
-	w.Write(buf)
+func (w *BufWriter) WriteU16BE(u16 *U16) *BufWriter {
+	w.Write(u16.ToBEBuf())
 	return w
 }
 
-// WriteU32BE writes a 32-bit unsigned integer in big-endian order.
-func (w *BufWriter) WriteU32BE(u32 uint32) *BufWriter {
-	buf := make([]byte, 4)
-	binary.BigEndian.PutUint32(buf, u32)
-	w.Write(buf)
+func (w *BufWriter) WriteU32BE(u32 *U32) *BufWriter {
+	w.Write(u32.ToBEBuf())
 	return w
 }
 
-// WriteU64BE writes a 64-bit unsigned integer in big-endian order.
-func (w *BufWriter) WriteU64BE(u64 uint64) *BufWriter {
-	buf := make([]byte, 8)
-	binary.BigEndian.PutUint64(buf, u64)
-	w.Write(buf)
+
+func (w *BufWriter) WriteU64BE(u64 *U64) *BufWriter {
+	w.Write(u64.ToBEBuf())
 	return w
 }
 
-// WriteU128BE writes a 128-bit unsigned integer in big-endian order.
-func (w *BufWriter) WriteU128BE(u128 *big.Int) *BufWriter {
-	buf := make([]byte, 16)
-	u128Bytes := u128.Bytes()
-	copy(buf[16-len(u128Bytes):], u128Bytes)
-	w.Write(buf)
+func (w *BufWriter) WriteU128BE(u128 *U128) *BufWriter {
+	w.Write(u128.ToBEBuf())
+	return w
+}
+
+func (w *BufWriter) Write256BE(u256 *U256) *BufWriter {
+	w.Write(u256.ToBEBuf())
 	return w
 }
 
 // WriteVarInt writes a variable-length integer to the buffer.
-func (w *BufWriter) WriteVarInt(u64 uint64) *BufWriter {
+func (w *BufWriter) WriteVarInt(u64 U64) *BufWriter {
 	buf := w.VarIntBuf(u64)
 	w.Write(buf)
 	return w
 }
 
 // VarIntBuf creates a buffer for a variable-length integer.
-func (w *BufWriter) VarIntBuf(n uint64) []byte {
+func (w *BufWriter) VarIntBuf(bn U64) []byte {
 	var buf []byte
+	n := bn.N()
 	if n < 253 {
 		buf = []byte{byte(n)}
 	} else if n < 0x10000 {
@@ -103,7 +94,7 @@ func (w *BufWriter) VarIntBuf(n uint64) []byte {
 	} else {
 		buf = make([]byte, 9)
 		buf[0] = 255
-		binary.BigEndian.PutUint64(buf[1:], n)
+		binary.BigEndian.PutUint64(buf[1:], uint64(n))
 	}
 	return buf
 }

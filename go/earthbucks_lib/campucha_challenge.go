@@ -82,11 +82,19 @@ func (cc *CompuchaChallenge) Id() (*FixedBuf, error) {
 	return hash, nil
 }
 
-func (cc *CompuchaChallenge) isTargetValid(targetNonce U256) (*bool, error) {
+// isTargetValid checks if the hash is less than the target nonce.
+func (cc *CompuchaChallenge) isTargetValid(targetNonce *U256) (bool, error) {
 	hashBuf, err := cc.Id()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	hashNum := U256.FromBEBuf(hashBuf.buf)
-	return hashNum.bn < targetNonce.value
+
+	// Convert the hash buffer to U256
+	hashNum, err := FromBEBufU256(hashBuf.buf)
+	if err != nil {
+		return false, err
+	}
+
+	// Perform the comparison
+	return hashNum.value.Cmp(targetNonce.value) < 0, nil
 }

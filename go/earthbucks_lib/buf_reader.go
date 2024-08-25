@@ -105,19 +105,8 @@ func (r *BufReader) ReadU128BE() (*U128, error) {
     if val.BitLen() > 128 {
         return nil, ErrValueExceeds128Bits
     }
-
-    // Extract high and low 64 bits from the big.Int
-    high := val.Rsh(val, 64).Uint64()
-    low := val.Uint64()
-
-    // Create a uint128 value
-    u128 := uint128{
-        high: high,
-        low:  low,
-    }
-
     // Create a U128 from the uint128 value
-    return NewU128(u128)
+    return NewU128(val)
 }
 
 

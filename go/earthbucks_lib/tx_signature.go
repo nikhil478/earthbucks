@@ -31,7 +31,7 @@ func (tx *TxSignature) ToBuf() []byte {
 }
 
 // FromBuf deserializes a byte buffer into a TxSignature
-func (TxSignature) FromBuf(buf []byte) (*TxSignature, error) {
+func FromBufTxSignature(buf []byte) (*TxSignature, error) {
 	if len(buf) != TxSignatureSize {
 		return nil, errors.New("invalid TxSignature length")
 	}

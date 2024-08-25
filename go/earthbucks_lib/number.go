@@ -13,14 +13,16 @@ var (
 	ErrInvalidValue   = errors.New("value is not valid")
 )
 
+
+// TODO: Review Using float64 as it is equivalent to number and big.Int as it equivalent to bigInt
 // BasicNumber defines an abstract base type for basic numbers.
 type BasicNumber interface {
 	Add(other BasicNumber) (BasicNumber, error)
 	Sub(other BasicNumber) (BasicNumber, error)
 	Mul(other BasicNumber) (BasicNumber, error)
 	Div(other BasicNumber) (BasicNumber, error)
-	Bn() uint64
-	N() uint32
+	Bn() *big.Int
+	N() float64
 	ToBEBuf() []byte
 	ToHex() string
 }
@@ -76,12 +78,14 @@ func (u *U8) Div(other BasicNumber) (BasicNumber, error) {
 	return NewU8(result)
 }
 
-func (u *U8) Bn() uint64 {
-	return uint64(u.value)
+func (u *U8) Bn() *big.Int {
+	bn := new(big.Int)
+    bn.SetUint64(uint64(u.value))
+    return bn
 }
 
-func (u *U8) N() uint32 {
-	return uint32(u.value)
+func (u *U8) N() float64 {
+	return float64(u.value)
 }
 
 func (u *U8) ToBEBuf() []byte {
@@ -160,12 +164,14 @@ func (u *U16) Div(other BasicNumber) (BasicNumber, error) {
 	return NewU16(result)
 }
 
-func (u *U16) Bn() uint64 {
-	return uint64(u.value)
+func (u *U16) Bn() *big.Int {
+	bn := new(big.Int)
+    bn.SetUint64(uint64(u.value))
+	return bn
 }
 
-func (u *U16) N() uint32 {
-	return uint32(u.value)
+func (u *U16) N() float64 {
+	return float64(u.value)
 }
 
 func (u *U16) ToBEBuf() []byte {
@@ -244,12 +250,14 @@ func (u *U32) Div(other BasicNumber) (BasicNumber, error) {
 	return NewU32(result)
 }
 
-func (u *U32) Bn() uint64 {
-	return uint64(u.value)
+func (u *U32) Bn() *big.Int {
+	bn := new(big.Int)
+    bn.SetUint64(uint64(u.value))
+	return bn
 }
 
-func (u *U32) N() uint32 {
-	return u.value
+func (u *U32) N() float64 {
+	return float64(u.value)
 }
 
 func (u *U32) ToBEBuf() []byte {
@@ -328,12 +336,14 @@ func (u *U64) Div(other BasicNumber) (BasicNumber, error) {
 	return NewU64(result)
 }
 
-func (u *U64) Bn() uint64 {
-	return u.value
+func (u *U64) Bn() *big.Int {
+	bn := new(big.Int)
+    bn.SetUint64(uint64(u.value))
+	return bn
 }
 
-func (u *U64) N() uint32 {
-	return uint32(u.value)
+func (u *U64) N() float64 {
+	return float64(u.value)
 }
 
 func (u *U64) ToBEBuf() []byte {
@@ -363,93 +373,97 @@ func FromHexU64(hexStr string) (*U64, error) {
 
 // U128 represents a 128-bit unsigned integer.
 type U128 struct {
-	value uint128
+	value *big.Int
 }
 
-type uint128 struct {
-	high, low uint64
-}
+// NewU128 creates a new U128 instance if the value is within the valid range.
+func NewU128(value *big.Int) (*U128, error) {
+	// Define the maximum value for a 128-bit unsigned integer
+	maxU128 := new(big.Int)
+	maxU128.SetUint64(0xffffffffffffffff) // 64-bit max value
+	maxU128.Lsh(maxU128, 64) // Shift left by 64 bits to get 128-bit max value
 
-func NewU128(value uint128) (*U128, error) {
-	// Since Go's uint128 is not built-in, we simulate it
-	if value.high > 0xffffffffffffffff || value.low > 0xffffffffffffffff {
+	// Check if the value is within the valid range
+	if value.Cmp(maxU128) > 0 || value.Sign() < 0 {
 		return nil, ErrInvalidValue
 	}
-	return &U128{value: value}, nil
+	return &U128{value: new(big.Int).Set(value)}, nil
 }
 
-func (u *U128) Add(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U128)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for addition")
+// Add performs addition of two U128 values.
+func (u *U128) Add(other *U128) (*U128, error) {
+	result := new(big.Int).Set(u.value)
+	result.Add(result, other.value)
+	return NewU128(result)
+}
+
+// Sub performs subtraction of two U128 values.
+func (u *U128) Sub(other *U128) (*U128, error) {
+	result := new(big.Int).Set(u.value)
+	result.Sub(result, other.value)
+	return NewU128(result)
+}
+
+// Mul performs multiplication of two U128 values.
+func (u *U128) Mul(other *U128) (*U128, error) {
+	result := new(big.Int).Set(u.value)
+	result.Mul(result, other.value)
+	return NewU128(result)
+}
+
+// Div performs division of two U128 values.
+func (u *U128) Div(other *U128) (*U128, error) {
+	if other.value.Sign() == 0 {
+		return nil, errors.New("division by zero")
 	}
-	// Implement addition for uint128
-	resultHigh, resultLow := u.value.high+o.value.high, u.value.low+o.value.low
-	if resultLow < u.value.low {
-		resultHigh++
-	}
-	return NewU128(uint128{high: resultHigh, low: resultLow})
+	result := new(big.Int).Set(u.value)
+	result.Div(result, other.value)
+	return NewU128(result)
 }
 
-func (u *U128) Sub(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U128)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for subtraction")
-	}
-	// Implement subtraction for uint128
-	resultHigh, resultLow := u.value.high-o.value.high, u.value.low-o.value.low
-	if resultLow > u.value.low {
-		resultHigh--
-	}
-	return NewU128(uint128{high: resultHigh, low: resultLow})
+// Bn returns the U128 value as a big.Int.
+func (u *U128) Bn() *big.Int {
+	return new(big.Int).Set(u.value)
 }
 
-func (u *U128) Mul(other BasicNumber) (BasicNumber, error) {
-	_, ok := other.(*U128)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for multiplication")
-	}
-	// Implement multiplication for uint128
-	// This will need a more complex implementation in a real scenario
-	return nil, fmt.Errorf("multiplication not implemented for uint128")
+// N converts the U128 value to float64.
+func (u *U128) N() float64 {
+	// Conversion should be done with caution; may lose precision for large values
+	float64Val,_ := u.value.Float64()
+	return float64Val
 }
 
-func (u *U128) Div(other BasicNumber) (BasicNumber, error) {
-	_, ok := other.(*U128)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for division")
-	}
-	// Implement division for uint128
-	// This will need a more complex implementation in a real scenario
-	return nil, fmt.Errorf("division not implemented for uint128")
-}
-
-func (u *U128) Bn() uint64 {
-	return u.value.low
-}
-
-func (u *U128) N() uint32 {
-	return uint32(u.value.low)
-}
-
+// ToBEBuf converts the U128 value to a big-endian byte slice.
 func (u *U128) ToBEBuf() []byte {
 	buf := make([]byte, 16)
-	binary.BigEndian.PutUint64(buf[:8], u.value.high)
-	binary.BigEndian.PutUint64(buf[8:], u.value.low)
+	binary.BigEndian.PutUint64(buf[:8], u.value.Rsh(u.value, 64).Uint64())
+	binary.BigEndian.PutUint64(buf[8:], u.value.Uint64())
 	return buf
 }
 
+// ToHex returns the hexadecimal string representation of the U128 value.
 func (u *U128) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
+// FromBEBufU128 creates a U128 instance from a big-endian byte slice.
 func FromBEBufU128(buf []byte) (*U128, error) {
 	if len(buf) != 16 {
 		return nil, ErrInvalidSize
 	}
+
+	// Extract the high and low 64-bit parts from the buffer
 	high := binary.BigEndian.Uint64(buf[:8])
 	low := binary.BigEndian.Uint64(buf[8:])
-	return NewU128(uint128{high: high, low: low})
+
+	// Combine the high and low parts into a single big.Int
+	value := new(big.Int)
+	value.SetUint64(low)
+	value.Lsh(value, 64)
+	value.Or(value, new(big.Int).SetUint64(high))
+
+	// Create and return the U128 instance
+	return NewU128(value)
 }
 
 func FromHexU128(hexStr string) (*U128, error) {

@@ -12,7 +12,7 @@ type MacFunction func(key *FixedBuf, data []byte) (*FixedBuf, error)
 
 var (
 	Blake3Hash         HashFunction
-	DoubleBlake3Hash  HashFunction
+	DoubleBlake3Hash   HashFunction
 	Blake3Mac          MacFunction
 )
 
