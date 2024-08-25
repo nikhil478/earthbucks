@@ -11,27 +11,27 @@ type HashFunction func(input []byte) (*FixedBuf, error)
 type MacFunction func(key *FixedBuf, data []byte) (*FixedBuf, error)
 
 var (
-	blake3Hash         HashFunction
-	doubleBlake3Hash  HashFunction
-	blake3Mac          MacFunction
+	Blake3Hash         HashFunction
+	DoubleBlake3Hash  HashFunction
+	Blake3Mac          MacFunction
 )
 
 func init() {
-	blake3Hash = func(data []byte) (*FixedBuf, error) {
+	Blake3Hash = func(data []byte) (*FixedBuf, error) {
 		hash := blake3.New()
 		hash.Write(data)
 		return NewFixedBuf(32, hash.Sum(nil))
 	}
 
-	doubleBlake3Hash = func(data []byte) (*FixedBuf, error) {
-		hash1, err := blake3Hash(data)
+	DoubleBlake3Hash = func(data []byte) (*FixedBuf, error) {
+		hash1, err := Blake3Hash(data)
 		if err != nil {
 			return nil, err
 		}
-		return blake3Hash(hash1.buf)
+		return Blake3Hash(hash1.buf)
 	}
 
-	blake3Mac = func(key *FixedBuf, data []byte) (*FixedBuf, error) {
+	Blake3Mac = func(key *FixedBuf, data []byte) (*FixedBuf, error) {
 		hasher,err := blake3.NewKeyed(key.buf)
 		if err != nil {
 			return nil, err
