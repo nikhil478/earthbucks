@@ -1,6 +1,3 @@
-Here's a `README.md` for your Go package for the Earthbucks blockchain:
-
-```markdown
 # Go Package for Earthbucks Blockchain
 
 ## Overview
