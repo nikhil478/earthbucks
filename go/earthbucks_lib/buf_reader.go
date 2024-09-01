@@ -8,7 +8,7 @@ import (
 
 
 var (
-	ErrNotEnoughData       = errors.New("not enough data")
+	ErrNotEnoughData       = errors.New("not enough bytes in the buffer to read")
 	ErrNonMinimalEncoding  = errors.New("non-minimal encoding")
 	ErrInsufficientPrecision = errors.New("insufficient precision")
 	ErrValueExceeds128Bits = errors.New("err value exceeds 128 bits") 
