@@ -71,30 +71,31 @@ func (w *BufWriter) Write256BE(u256 *U256) *BufWriter {
 }
 
 // WriteVarInt writes a variable-length integer to the buffer.
-func (w *BufWriter) WriteVarInt(u64 U64) *BufWriter {
-	buf := w.VarIntBuf(u64)
-	w.Write(buf)
-	return w
+func (w *BufWriter) WriteVarInt(u64 *U64) *BufWriter {
+    buf := w.VarIntBuf(u64)
+    w.Write(buf)
+    return w
 }
 
 // VarIntBuf creates a buffer for a variable-length integer.
-func (w *BufWriter) VarIntBuf(bn U64) []byte {
-	var buf []byte
-	n := bn.N()
-	if n < 253 {
-		buf = []byte{byte(n)}
-	} else if n < 0x10000 {
-		buf = make([]byte, 3)
-		buf[0] = 253
-		binary.BigEndian.PutUint16(buf[1:], uint16(n))
-	} else if n < 0x100000000 {
-		buf = make([]byte, 5)
-		buf[0] = 254
-		binary.BigEndian.PutUint32(buf[1:], uint32(n))
-	} else {
-		buf = make([]byte, 9)
-		buf[0] = 255
-		binary.BigEndian.PutUint64(buf[1:], uint64(n))
-	}
-	return buf
+func (w *BufWriter) VarIntBuf(bn *U64) []byte {
+    var buf bytes.Buffer
+    n := bn.value
+
+    if n < 253 {
+        buf.WriteByte(byte(n))
+		binary.Write(&buf, binary.BigEndian, uint16(n))
+    } else if n < 0x10000 {
+        buf.WriteByte(253)
+        binary.Write(&buf, binary.BigEndian, uint16(n))
+    } else if n < 0x100000000 {
+        buf.WriteByte(254)
+        binary.Write(&buf, binary.BigEndian, uint32(n))
+    } else {
+        buf.WriteByte(255)
+        // For large values, write 8 bytes
+        binary.Write(&buf, binary.BigEndian, uint64(n))
+    }
+
+    return buf.Bytes()
 }
