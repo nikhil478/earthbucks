@@ -53,6 +53,3 @@ go test ./...
 - **Testify Library:** `testify` provides enhanced assertion methods, which help in writing more readable tests and simplifying test assertions. It also includes utilities for mocking and test suite management, which are beneficial for complex testing scenarios.
 
 By using these tools and practices, we ensure that our implementation remains robust, maintainable, and aligned with industry standards.
-```
-
-This `README.md` provides a comprehensive overview of the package, testing practices, and rationale for the chosen tools.
