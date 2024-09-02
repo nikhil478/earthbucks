@@ -83,7 +83,7 @@ func (cc *CompuchaChallenge) Id() (*FixedBuf, error) {
 }
 
 // isTargetValid checks if the hash is less than the target nonce.
-func (cc *CompuchaChallenge) isTargetValid(targetNonce *U256) (bool, error) {
+func (cc *CompuchaChallenge) IsTargetValid(targetNonce *U256) (bool, error) {
 	hashBuf, err := cc.Id()
 	if err != nil {
 		return false, err
