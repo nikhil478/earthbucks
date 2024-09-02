@@ -53,7 +53,7 @@ func EbxBufFromBuf(size int, buf []byte) (*EbxBuf, error) {
 }
 
 // Alloc allocates a new EbxBuf with a specific size and optional fill byte
-func (EbxBuf) Alloc(size int, fill byte) (*EbxBuf, error) {
+func EbxBufAlloc(size int, fill byte) (*EbxBuf, error) {
     buf := make([]byte, size)
     if fill != 0 {
         for i := range buf {
@@ -64,7 +64,7 @@ func (EbxBuf) Alloc(size int, fill byte) (*EbxBuf, error) {
 }
 
 // FromHex creates an EbxBuf from a hex string
-func (EbxBuf) FromHex(size int, hexStr string) (*EbxBuf, error) {
+func EbxBufFromHex(size int, hexStr string) (*EbxBuf, error) {
     data, err := hex.DecodeString(hexStr)
     if err != nil {
         return nil, ErrInvalidHex
@@ -78,7 +78,7 @@ func (e *EbxBuf) ToHex() string {
 }
 
 // FromBase64 creates an EbxBuf from a base64 string
-func (EbxBuf) FromBase64(size int, base64Str string) (*EbxBuf, error) {
+func EbxBufFromBase64(size int, base64Str string) (*EbxBuf, error) {
     data, err := base64.StdEncoding.DecodeString(base64Str)
     if err != nil {
         return nil, ErrInvalidEncoding
@@ -106,7 +106,7 @@ func (e *EbxBuf) ToBase58() string {
 }
 
 // FromRandom creates an EbxBuf with random content of a specific size
-func (EbxBuf) FromRandom(size int) (*EbxBuf, error) {
+func EbxBufFromRandom(size int) (*EbxBuf, error) {
     buf := make([]byte, size)
     _, err := rand.Read(buf)
     if err != nil {
@@ -136,7 +136,7 @@ func FixedBufFromBuf(size int, buf []byte) (*FixedBuf, error) {
 }
 
 // Alloc allocates a new FixedBuf with a specific size and optional fill byte
-func (FixedBuf) Alloc(size int, fill byte) (*FixedBuf, error) {
+func FixedBufAlloc(size int, fill byte) (*FixedBuf, error) {
 	buf := make([]byte, size)
 	for i := range buf {
 		buf[i] = fill
@@ -145,7 +145,7 @@ func (FixedBuf) Alloc(size int, fill byte) (*FixedBuf, error) {
 }
 
 // FromHex creates a FixedBuf from a hex string
-func (FixedBuf) FromHex(size int, hexStr string) (*FixedBuf, error) {
+func FixedBufFromHex(size int, hexStr string) (*FixedBuf, error) {
 	data, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return nil, ErrInvalidHex
@@ -163,7 +163,7 @@ func FixedBufFromBase58(size int, base58Str string) (*FixedBuf, error) {
 }
 
 // FromRandom creates a FixedBuf with random content of a specific size
-func (FixedBuf) FromRandom(size int) (*FixedBuf, error) {
+func FixedBufFromRandom(size int) (*FixedBuf, error) {
 	buf := make([]byte, size)
 	_, err := rand.Read(buf)
 	if err != nil {

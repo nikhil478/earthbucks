@@ -14,8 +14,8 @@ func NewCompuchaChallenge(challengeId *FixedBuf, nonce *U128) *CompuchaChallenge
     }
 }
 
-func (CompuchaChallenge) FromRandomNonce(challengeId *FixedBuf) (*CompuchaChallenge, error) {
-    nonceBuf, err := FixedBuf.FromRandom(FixedBuf{}, 16)
+func CompuchaChallengeFromRandomNonce(challengeId *FixedBuf) (*CompuchaChallenge, error) {
+    nonceBuf, err := FixedBufFromRandom(16)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (CompuchaChallenge) FromRandomNonce(challengeId *FixedBuf) (*CompuchaChalle
     return NewCompuchaChallenge(challengeId, nonce) , nil
 }
 
-func (c CompuchaChallenge) FromBufReader(br BufReader) (*CompuchaChallenge, error) {
+func CompuchaChallengeFromBufReader(br BufReader) (*CompuchaChallenge, error) {
 	challengeId,err := br.ReadFixed(16)
 	if err != nil {
 		return nil, err
@@ -38,16 +38,16 @@ func (c CompuchaChallenge) FromBufReader(br BufReader) (*CompuchaChallenge, erro
 	return NewCompuchaChallenge(challengeId, nonce) , nil
 }
 
-func (c CompuchaChallenge) FromBuf(buf *FixedBuf) (*CompuchaChallenge, error) {
-	return c.FromBufReader(*NewBufReader(buf.buf))
+func CompuchaChallengeFromBuf(buf *FixedBuf) (*CompuchaChallenge, error) {
+	return CompuchaChallengeFromBufReader(*NewBufReader(buf.buf))
 }
 
-func (c CompuchaChallenge) FromHex(hex string) (*CompuchaChallenge, error) {
-	fixedBuf, err := FixedBuf.FromHex(FixedBuf{}, SIZE, hex)
+func CompuchaChallengeFromHex(hex string) (*CompuchaChallenge, error) {
+	fixedBuf, err := FixedBufFromHex(SIZE, hex)
 	if err != nil {
 		return nil, err
 	}
-	return c.FromBuf(fixedBuf)
+	return CompuchaChallengeFromBuf(fixedBuf)
 }
 
 func (cc *CompuchaChallenge) ToBuf() (*FixedBuf, error) {
