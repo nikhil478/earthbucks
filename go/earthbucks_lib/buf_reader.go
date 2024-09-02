@@ -46,7 +46,7 @@ func (r *BufReader) ReadFixed(len int) (*FixedBuf, error) {
 	if err != nil {
 		return nil, err
 	}
-	return FixedBuf.FromBuf(FixedBuf{}, len, data)
+	return FixedBufFromBuf( len, data)
 }
 
 // ReadRemainder reads the remainder of the buffer

@@ -48,7 +48,7 @@ func NewEbxBuf(size int, data []byte) (*EbxBuf, error) {
 }
 
 // FromBuf creates an EbxBuf from a buffer
-func (EbxBuf) FromBuf(size int, buf []byte) (*EbxBuf, error) {
+func EbxBufFromBuf(size int, buf []byte) (*EbxBuf, error) {
     return NewEbxBuf(size, buf)
 }
 
@@ -92,7 +92,7 @@ func (e *EbxBuf) ToBase64() string {
 }
 
 // FromBase58 creates an EbxBuf from a base58 string
-func (EbxBuf) FromBase58(size int, base58Str string) (*EbxBuf, error) {
+func EbxBufFromBase58(size int, base58Str string) (*EbxBuf, error) {
     data, err := base58.Decode(base58Str)
     if len(data) == 0 || err != nil{
         return nil, ErrInvalidEncoding
@@ -131,7 +131,7 @@ func NewFixedBuf(size int, data []byte) (*FixedBuf, error) {
 }
 
 // FromBuf creates a FixedBuf from a buffer
-func (FixedBuf) FromBuf(size int, buf []byte) (*FixedBuf, error) {
+func FixedBufFromBuf(size int, buf []byte) (*FixedBuf, error) {
 	return NewFixedBuf(size, buf)
 }
 
@@ -154,7 +154,7 @@ func (FixedBuf) FromHex(size int, hexStr string) (*FixedBuf, error) {
 }
 
 // FromBase58 creates a FixedBuf from a base58 string
-func (FixedBuf) FromBase58(size int, base58Str string) (*FixedBuf, error) {
+func FixedBufFromBase58(size int, base58Str string) (*FixedBuf, error) {
 	data, err := base58.Decode(base58Str)
 	if len(data) == 0 || err != nil {
 		return nil, ErrInvalidEncoding
