@@ -148,7 +148,7 @@ func FromLeafHashes(hashes []*FixedBuf) *MerkleNode {
 func (n *MerkleNode) DoubleWithNulls() (*MerkleNode, error) {
 	count := n.CountAllLeaves()
 	if math.Log2(float64(count)) != math.Floor(math.Log2(float64(count))) {
-		return nil, errors.New("Cannot double a tree that is not a power of 2")
+		return nil, errors.New("cannot double a tree that is not a power of 2")
 	}
 	nullHashes := make([]*FixedBuf, count)
 	nullTree := FromLeafHashes(nullHashes)
@@ -158,14 +158,14 @@ func (n *MerkleNode) DoubleWithNulls() (*MerkleNode, error) {
 // Update a balanced leaf hash at a specific position.
 func (n *MerkleNode) UpdateBalancedLeafHash(pos int, hash *FixedBuf) (*MerkleNode, error) {
 	if pos < 0 {
-		return nil, errors.New("Position must be greater than or equal to 0")
+		return nil, errors.New("position must be greater than or equal to 0")
 	}
 	countAll := n.CountAllLeaves()
 	if pos >= countAll {
-		return nil, errors.New("Position must be less than the number of leaves")
+		return nil, errors.New("position must be less than the number of leaves")
 	}
 	if math.Log2(float64(countAll)) != math.Floor(math.Log2(float64(countAll))) {
-		return nil, errors.New("Cannot update a tree that is not a power of 2")
+		return nil, errors.New("cannot update a tree that is not a power of 2")
 	}
 	if countAll == 1 {
 		return &MerkleNode{Hash: hash}, nil
@@ -189,7 +189,7 @@ func (n *MerkleNode) UpdateBalancedLeafHash(pos int, hash *FixedBuf) (*MerkleNod
 
 	countLeft := countAll / 2
 	if countLeft == 0 {
-		return nil, errors.New("Left node must not be null")
+		return nil, errors.New("left node must not be null")
 	}
 	if pos < countLeft {
 		left, err := n.Left.UpdateBalancedLeafHash(pos, hash)
