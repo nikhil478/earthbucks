@@ -171,3 +171,15 @@ func FixedBufFromRandom(size int) (*FixedBuf, error) {
 	}
 	return NewFixedBuf(size, buf)
 }
+
+func (fb *FixedBuf) Equals(other *FixedBuf) bool {
+	if len(fb.buf) != len(other.buf) {
+		return false
+	}
+	for i := range fb.buf {
+		if fb.buf[i] != other.buf[i] {
+			return false
+		}
+	}
+	return true
+}
