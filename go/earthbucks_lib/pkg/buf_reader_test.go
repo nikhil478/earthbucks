@@ -105,7 +105,7 @@ func TestBufReader(t *testing.T) {
 
 
 func TestBufReaderTestVectors(t *testing.T) {
-	filePath := "./test-vectors/buf_reader.json"
+	filePath := "../test-vectors/buf_reader.json"
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read test vector file: %v", err)

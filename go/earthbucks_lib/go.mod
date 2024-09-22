@@ -12,6 +12,6 @@ require (
 
 require (
 	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
-	github.com/mr-tron/base58 v1.2.0 // indirect
+	github.com/mr-tron/base58 v1.2.0
 	github.com/stretchr/testify v1.9.0
 )
