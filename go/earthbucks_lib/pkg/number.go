@@ -11,6 +11,7 @@ import (
 // Error definitions
 var (
 	ErrInvalidValue   = errors.New("value is not valid")
+	ErrDivisionByZero = errors.New("division by zero")
 )
 
 
@@ -72,7 +73,7 @@ func (u *U8) Div(other BasicNumber) (BasicNumber, error) {
 		return nil, fmt.Errorf("invalid type for division")
 	}
 	if o.value == 0 {
-		return nil, fmt.Errorf("division by zero")
+		return nil, ErrDivisionByZero
 	}
 	result := u.value / o.value
 	return NewU8(result)
@@ -80,8 +81,8 @@ func (u *U8) Div(other BasicNumber) (BasicNumber, error) {
 
 func (u *U8) Bn() *big.Int {
 	bn := new(big.Int)
-    bn.SetUint64(uint64(u.value))
-    return bn
+	bn.SetUint64(uint64(u.value))
+	return bn
 }
 
 func (u *U8) N() float64 {
@@ -98,26 +99,12 @@ func (u *U8) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
-func FromBEBufU8(buf []byte) (*U8, error) {
-	if len(buf) != 1 {
-		return nil, ErrInvalidSize
-	}
-	return NewU8(buf[0])
-}
-
-func FromHexU8(hexStr string) (*U8, error) {
-	buf, err := hex.DecodeString(hexStr)
-	if err != nil {
-		return nil, err
-	}
-	return FromBEBufU8(buf)
-}
-
 // U16 represents a 16-bit unsigned integer.
 type U16 struct {
 	value uint16
 }
 
+// NewU16 creates a new U16 instance with validation.
 func NewU16(value uint16) (*U16, error) {
 	if value < 0x0000 || value > 0xffff {
 		return nil, ErrInvalidValue
@@ -125,6 +112,7 @@ func NewU16(value uint16) (*U16, error) {
 	return &U16{value: value}, nil
 }
 
+// Add adds another U16 to the current U16.
 func (u *U16) Add(other BasicNumber) (BasicNumber, error) {
 	o, ok := other.(*U16)
 	if !ok {
@@ -134,6 +122,7 @@ func (u *U16) Add(other BasicNumber) (BasicNumber, error) {
 	return NewU16(result)
 }
 
+// Sub subtracts another U16 from the current U16.
 func (u *U16) Sub(other BasicNumber) (BasicNumber, error) {
 	o, ok := other.(*U16)
 	if !ok {
@@ -143,6 +132,7 @@ func (u *U16) Sub(other BasicNumber) (BasicNumber, error) {
 	return NewU16(result)
 }
 
+// Mul multiplies another U16 with the current U16.
 func (u *U16) Mul(other BasicNumber) (BasicNumber, error) {
 	o, ok := other.(*U16)
 	if !ok {
@@ -152,38 +142,44 @@ func (u *U16) Mul(other BasicNumber) (BasicNumber, error) {
 	return NewU16(result)
 }
 
+// Div divides the current U16 by another U16.
 func (u *U16) Div(other BasicNumber) (BasicNumber, error) {
 	o, ok := other.(*U16)
 	if !ok {
 		return nil, fmt.Errorf("invalid type for division")
 	}
 	if o.value == 0 {
-		return nil, fmt.Errorf("division by zero")
+		return nil, ErrDivisionByZero
 	}
 	result := u.value / o.value
 	return NewU16(result)
 }
 
+// Bn returns the value as a *big.Int.
 func (u *U16) Bn() *big.Int {
 	bn := new(big.Int)
-    bn.SetUint64(uint64(u.value))
+	bn.SetUint64(uint64(u.value))
 	return bn
 }
 
+// N returns the value as a float64.
 func (u *U16) N() float64 {
 	return float64(u.value)
 }
 
+// ToBEBuf converts the U16 value to a byte buffer in big-endian order.
 func (u *U16) ToBEBuf() []byte {
 	buf := make([]byte, 2)
 	binary.BigEndian.PutUint16(buf, u.value)
 	return buf
 }
 
+// ToHex converts the U16 value to a hexadecimal string.
 func (u *U16) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
+// FromBEBufU16 creates a U16 instance from a byte buffer.
 func FromBEBufU16(buf []byte) (*U16, error) {
 	if len(buf) != 2 {
 		return nil, ErrInvalidSize
@@ -191,6 +187,7 @@ func FromBEBufU16(buf []byte) (*U16, error) {
 	return NewU16(binary.BigEndian.Uint16(buf))
 }
 
+// FromHex creates a U16 instance from a hexadecimal string.
 func FromHexU16(hexStr string) (*U16, error) {
 	buf, err := hex.DecodeString(hexStr)
 	if err != nil {

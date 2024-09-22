@@ -86,12 +86,13 @@ func (bmh *BlockMessageHeader) Verify(prevId FixedBuf, prevNum *U64, message str
 	if bmh.version.value != expectedVersion.value {
 		return false
 	}
-	// todo fix this @nikhil478
-	// expectedMessageId := GetMessageId(message).buf
-	// fxBuf := FixedBuf{buf: expectedMessageId}
-	// if !fxBuf.Equals(bmh.messageId) {
-	// 	return false
-	// }
+	
+	// TODO: this code need inspection @nikhil478
+	expectedMessageId := GetMessageId(message).buf
+	fxBuf,_ := FixedBufFromBuf(4, expectedMessageId)
+	if !fxBuf.Equals(bmh.messageId) {
+		return false
+	}
 	
 	if len(prevId.buf) == 0 && prevNum != nil {
 		return false

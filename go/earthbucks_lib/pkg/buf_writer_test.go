@@ -1,91 +1,119 @@
 package earthbucks
 
 import (
+	"encoding/binary"
 	"fmt"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBufWriter(t *testing.T) {
-    var bufferWriter *BufWriter
+	
 
-    // Before each test, initialize a new BufWriter
-    beforeEach := func() {
-        bufferWriter = NewBufWriter()
-    }
+	t.Run("writeUInt8", func(t *testing.T) {
+        bufferWriter := NewBufWriter()
+		u8 := U8{value: 123}
+		bufferWriter.WriteU8BE(&u8)
+		result := bufferWriter.ToBuf()
+		if result[0] != u8.value {
+			t.Errorf("Expected %d, got %d", u8.value, result[0])
+		}
+	})
 
-    t.Run("writeUInt8", func(t *testing.T) {
-        beforeEach()
-        u8, _ := NewU8(123)
-        bufferWriter.WriteU8BE(u8)
-        result := bufferWriter.ToBuf()
-        assert.Equal(t, u8.value, result[0])
-    })
+	t.Run("writeUInt16BE", func(t *testing.T) {
+        bufferWriter := NewBufWriter()
+		u16 := U16{value: 12345}
+		bufferWriter.WriteU16BE(&u16)
+		result := bufferWriter.ToBuf()
+		if got := binary.BigEndian.Uint16(result); got != u16.value {
+			t.Errorf("Expected %d, got %d", u16.value, got)
+		}
+	})
 
-    t.Run("writeUInt16BE", func(t *testing.T) {
-        beforeEach()
-        u16,_ := NewU16(12345)
-        bufferWriter.WriteU16BE(u16)
-        result := bufferWriter.ToBuf()
-        assert.Equal(t, u16.value, uint16(result[0])<<8|uint16(result[1]))
-    })
+	t.Run("writeUInt32BE", func(t *testing.T) {
+        bufferWriter := NewBufWriter()
+		u32 := U32{value: 1234567890}
+		bufferWriter.WriteU32BE(&u32)
+		result := bufferWriter.ToBuf()
+		if got := binary.BigEndian.Uint32(result); got != u32.value {
+			t.Errorf("Expected %d, got %d", u32.value, got)
+		}
+	})
 
-    t.Run("writeUInt32BE", func(t *testing.T) {
-        beforeEach()
-        u32,_ := NewU32(1234567890)
-        bufferWriter.WriteU32BE(u32)
-        result := bufferWriter.ToBuf()
-        assert.Equal(t, u32.value, uint32(result[0])<<24|uint32(result[1])<<16|uint32(result[2])<<8|uint32(result[3]))
-    })
+	t.Run("writeUInt64BE", func(t *testing.T) {
+        bufferWriter := NewBufWriter()
+		u64 := U64{value: 1234567890123456789}
+		bufferWriter.WriteU64BE(&u64)
+		result := bufferWriter.ToBuf()
+		if got := binary.BigEndian.Uint64(result); got != u64.value {
+			t.Errorf("Expected %d, got %d", u64.value, got)
+		}
+	})
 
-    t.Run("writeUInt64BEBn", func(t *testing.T) {
-        beforeEach()
-        u64,_ := NewU64(1234567890123456789)
-        bufferWriter.WriteU64BE(u64)
-        result := bufferWriter.ToBuf()
-        assert.Equal(t, u64.value, uint64(result[0])<<56|uint64(result[1])<<48|uint64(result[2])<<40|uint64(result[3])<<32|uint64(result[4])<<24|uint64(result[5])<<16|uint64(result[6])<<8|uint64(result[7]))
-    })
-
-    t.Run("writeVarInt", func(t *testing.T) {
-        beforeEach()
-        bn,_ := NewU64(1234567890123456789)
-        bufferWriter.WriteVarInt(bn)
-        result := bufferWriter.ToBuf()
-        assert.Equal(t, "ff112210f47de98115", bytesToHex(result))
-    })
+	t.Run("writeVarInt", func(t *testing.T) {
+        bufferWriter := NewBufWriter()
+		bn := U64{value: 1234567890123456789}
+		WriteVarInt(&bn, bufferWriter)
+		result := bufferWriter.ToBuf()
+		expectedHex := "ff112210f47de98115"
+		if hexString := bytesToHex(result); hexString != expectedHex {
+			t.Errorf("Expected %s, got %s", expectedHex, hexString)
+		}
+	})
 
 	t.Run("varIntBufBigInt", func(t *testing.T) {
-		testCases := []struct {
-			input    *U64
-			expected string
-		}{
-			{func() *U64 { v, _ := NewU64(252); return v }(), "fcfc"},
-			{func() *U64 { v, _ := NewU64(0xffff); return v }(), "fdffff"},
-			{func() *U64 { v, _ := NewU64(0xffffffff); return v }(), "feffffffff"},
-			{func() *U64 { v, _ := NewU64(0x100000000); return v }(), "ffff0000000000000000"},
-		}
-	
-		for _, tc := range testCases {
-			t.Run(tc.expected, func(t *testing.T) {
-				beforeEach()
-				result := bufferWriter.VarIntBuf(tc.input)
-				fmt.Print(bytesToHex(result))
-				assert.Equal(t, tc.expected, bytesToHex(result))
-			})
-		}
+		t.Run("should write a bigint less than 253 as a single byte", func(t *testing.T) {
+			bn := U64{value: 252}
+			result,_ := VarIntBuf(&bn)
+			if result[0] != byte(bn.value) {
+				t.Errorf("Expected %d, got %d", bn.value, result[0])
+			}
+		})
+
+		t.Run("should write a bigint less than 0x10000 as a 3-byte integer", func(t *testing.T) {
+			bn := U64{value: 0xffff}
+			result,_ := VarIntBuf(&bn)
+			if result[0] != 253 {
+				t.Errorf("Expected 253, got %d", result[0])
+			}
+			if (result[1]<<8|result[2]) != byte(bn.value) {
+				t.Errorf("Expected %d, got %d", bn.value, (result[1]<<8|result[2]))
+			}
+		})
+
+		t.Run("should write a bigint less than 0x100000000 as a 5-byte integer", func(t *testing.T) {
+			bn := U64{value: 0xffffffff}
+			result,_ := VarIntBuf(&bn)
+			if result[0] != 254 {
+				t.Errorf("Expected 254, got %d", result[0])
+			}
+			expectedHex := "feffffffff"
+			if hexString := bytesToHex(result); hexString != expectedHex {
+				t.Errorf("Expected %s, got %s", expectedHex, hexString)
+			}
+		})
+
+		t.Run("should write a bigint greater than or equal to 0x100000000 as a 9-byte integer", func(t *testing.T) {
+			u64 := U64{value: 0x100000000}
+			result,_ := VarIntBuf(&u64)
+			if result[0] != 255 {
+				t.Errorf("Expected 255, got %d", result[0])
+			}
+			readBn := (uint64(result[1]) << 56) |
+				(uint64(result[2]) << 48) |
+				(uint64(result[3]) << 40) |
+				(uint64(result[4]) << 32) |
+				(uint64(result[5]) << 24) |
+				(uint64(result[6]) << 16) |
+				(uint64(result[7]) << 8) |
+				uint64(result[8])
+			if readBn != u64.value {
+				t.Errorf("Expected %d, got %d", u64.value, readBn)
+			}
+		})
 	})
 }
 
 func bytesToHex(b []byte) string {
-    hexStr := make([]byte, len(b)*2)
-    hexChars := "0123456789abcdef"
-    
-    for i, v := range b {
-        hexStr[i*2] = hexChars[v>>4]
-        hexStr[i*2+1] = hexChars[v&0xf]
-    }
-    
-    return string(hexStr)
+	return fmt.Sprintf("%x", b)
 }
 
