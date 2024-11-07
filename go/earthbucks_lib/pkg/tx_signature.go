@@ -26,7 +26,7 @@ func NewTxSignature(hashType *U8, sigBuf *FixedBuf) *TxSignature {
 func (tx *TxSignature) ToBuf() []byte {
 	buf := make([]byte, TxSignatureSize)
 	buf[0] = tx.hashType.value
-	copy(buf[1:], tx.sigBuf.buf)
+	copy(buf[1:], *tx.sigBuf.buf)
 	return buf
 }
 
@@ -39,7 +39,9 @@ func TxSignatureFromBuf(buf []byte) (*TxSignature, error) {
     if  err != nil {
         return nil, err
     }
-	sigBuf, err := NewFixedBuf(64, buf[1:])
+	n := 64
+	buf1 := buf[1:]
+	sigBuf, err := NewFixedBuf(&n, &buf1)
 	if err != nil {
 		return nil, err
 	}

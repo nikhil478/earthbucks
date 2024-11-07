@@ -27,7 +27,7 @@ func GetMessageHash(message string) *FixedBuf {
 func GetMessageId(message string) *FixedBuf {
 	messageBuf := []byte(message)
 	messageHash,_ := Blake3Hash(messageBuf)
-	messageId,_ := Blake3Hash(messageHash.buf)
+	messageId,_ := Blake3Hash(*messageHash.buf)
 	return messageId
 }
 
@@ -38,8 +38,8 @@ func FromMessage(prevBlockMessageHeaderId *FixedBuf, message string, messageNum 
 
 func (bmh *BlockMessageHeader) ToBufWriter(bw *BufWriter) *BufWriter {
 	bw.WriteU8BE(bmh.version)
-	bw.Write(bmh.prevBlockMessageHeaderId.buf)
-	bw.Write(bmh.messageId.buf)
+	bw.Write(*bmh.prevBlockMessageHeaderId.buf)
+	bw.Write(*bmh.messageId.buf)
 	bw.WriteU64BE(bmh.messageNum)
 	return bw
 }
@@ -78,36 +78,37 @@ func (bmh *BlockMessageHeader) Hash() ( *FixedBuf, error) {
 
 func (bmh *BlockMessageHeader) Id() ( *FixedBuf, error) {
 	hash, _ := bmh.Hash()
-	return Blake3Hash(hash.buf)
+	return Blake3Hash(*hash.buf)
 }
 
-func (bmh *BlockMessageHeader) Verify(prevId FixedBuf, prevNum *U64, message string) bool {
-	expectedVersion := U8{value: 0}
-	if bmh.version.value != expectedVersion.value {
-		return false
-	}
+// func (bmh *BlockMessageHeader) Verify(prevId FixedBuf, prevNum *U64, message string) bool {
+// 	expectedVersion := U8{value: 0}
+// 	if bmh.version.value != expectedVersion.value {
+// 		return false
+// 	}
 	
-	// TODO: this code need inspection @nikhil478
-	expectedMessageId := GetMessageId(message).buf
-	fxBuf,_ := FixedBufFromBuf(4, expectedMessageId)
-	if !fxBuf.Equals(bmh.messageId) {
-		return false
-	}
+// 	// TODO: this code need inspection @nikhil478
+// 	expectedMessageId := GetMessageId(message).buf
+// 	n := 4
+// 	fxBuf,_ := FixedBufFromBuf(&n, expectedMessageId)
+// 	if !fxBuf.Equals(bmh.messageId) {
+// 		return false
+// 	}
 	
-	if len(prevId.buf) == 0 && prevNum != nil {
-		return false
-	}
-	if len(prevId.buf) != 0 && prevNum == nil {
-		return false
-	}
-	if len(prevId.buf) != 0 && prevNum != nil {
-		if !prevId.Equals(bmh.prevBlockMessageHeaderId) {
-			return false
-		}
-		expectedPrevNum := prevNum.value + 1
-		if bmh.messageNum.value != expectedPrevNum {
-			return false
-		}
-	}
-	return true
-}
+// 	if len(prevId.buf) == 0 && prevNum != nil {
+// 		return false
+// 	}
+// 	if len(prevId.buf) != 0 && prevNum == nil {
+// 		return false
+// 	}
+// 	if len(prevId.buf) != 0 && prevNum != nil {
+// 		if !prevId.Equals(bmh.prevBlockMessageHeaderId) {
+// 			return false
+// 		}
+// 		expectedPrevNum := prevNum.value + 1
+// 		if bmh.messageNum.value != expectedPrevNum {
+// 			return false
+// 		}
+// 	}
+// 	return true
+// }

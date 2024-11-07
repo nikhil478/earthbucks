@@ -20,7 +20,9 @@ func init() {
 	Blake3Hash = func(data []byte) (*FixedBuf, error) {
 		hash := blake3.New()
 		hash.Write(data)
-		return NewFixedBuf(32, hash.Sum(nil))
+		n := 32
+		hashSum := hash.Sum(nil)
+		return NewFixedBuf(&n, &hashSum)
 	}
 
 	DoubleBlake3Hash = func(data []byte) (*FixedBuf, error) {
@@ -28,16 +30,18 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		return Blake3Hash(hash1.buf)
+		return Blake3Hash(*hash1.buf)
 	}
 
 	Blake3Mac = func(key *FixedBuf, data []byte) (*FixedBuf, error) {
-		hasher,err := blake3.NewKeyed(key.buf)
+		hasher,err := blake3.NewKeyed(*key.buf)
 		if err != nil {
 			return nil, err
 		}
 		hasher.Write(data)
-		return NewFixedBuf(32, hasher.Sum(nil))
+		n := 32
+		hashSum := hasher.Sum(nil)
+		return NewFixedBuf(&n, &hashSum)
 	}
 
 }

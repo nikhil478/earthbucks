@@ -46,17 +46,17 @@ func countAll(n *MerkleNode) int {
 	return n.CountAllLeaves()
 }
 
-// Concatenate two FixedBufs into a single byte slice.
 func concat(left, right *FixedBuf) []byte {
 	var leftBuf, rightBuf []byte
 	if left != nil {
-		leftBuf = left.buf[:]
+		leftBuf = *left.buf
 	}
 	if right != nil {
-		rightBuf = right.buf[:]
+		rightBuf = *right.buf
 	}
 	return append(leftBuf, rightBuf...)
 }
+
 
 // Compute the hash for the Merkle node.
 func (n *MerkleNode) ComputeHash() *FixedBuf {
