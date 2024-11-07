@@ -3,24 +3,24 @@ package earthbucks
 type WorkSerAlgoName string
 
 const (
-	Null     WorkSerAlgoName = "null"
-	Blake3   WorkSerAlgoName = "blake3"
-	Blake3_2 WorkSerAlgoName = "blake3_2"
-	Blake3_3 WorkSerAlgoName = "blake3_3"
+	WorkSerAlgoNameNull     WorkSerAlgoName = "null"
+	WorkSerAlgoNameBlake3   WorkSerAlgoName = "blake3"
+	WorkSerAlgoNameBlake3_2 WorkSerAlgoName = "blake3_2"
+	WorkSerAlgoNameBlake3_3 WorkSerAlgoName = "blake3_3"
 )
 
 var workSerAlgoName = map[int]WorkSerAlgoName{
-	0: Null,
-	1: Blake3,
-	2: Blake3_2,
-	3: Blake3_3,
+	0: WorkSerAlgoNameNull,
+	1: WorkSerAlgoNameBlake3,
+	2: WorkSerAlgoNameBlake3_2,
+	3: WorkSerAlgoNameBlake3_3,
 }
 
 var workSerAlgoNum = map[WorkSerAlgoName]int{
-	Null:     0,
-	Blake3:   1,
-	Blake3_2: 2,
-	Blake3_3: 3,
+	WorkSerAlgoNameNull:     0,
+	WorkSerAlgoNameBlake3:   1,
+	WorkSerAlgoNameBlake3_2: 2,
+	WorkSerAlgoNameBlake3_3: 3,
 }
 
 // GetWorkSerAlgoName returns the algorithm name for a given ID.
