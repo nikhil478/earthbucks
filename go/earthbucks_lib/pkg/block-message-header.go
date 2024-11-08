@@ -1,6 +1,9 @@
 package earthbucks
 
-import "encoding/hex"
+import (
+	"encoding/hex"
+	"math/big"
+)
 
 type BlockMessageHeader struct {
 	version                   *U8
@@ -33,7 +36,8 @@ func GetMessageId(message string) *FixedBuf {
 
 func FromMessage(prevBlockMessageHeaderId *FixedBuf, message string, messageNum *U64) BlockMessageHeader {
 	messageId := GetMessageId(message)
-	return NewBlockMessageHeader(&U8{value: 0}, prevBlockMessageHeaderId, messageId, messageNum)
+	u8, _ := NewU8(*big.NewInt(0))
+	return NewBlockMessageHeader(u8, prevBlockMessageHeaderId, messageId, messageNum)
 }
 
 func (bmh *BlockMessageHeader) ToBufWriter(bw *BufWriter) *BufWriter {
@@ -46,8 +50,10 @@ func (bmh *BlockMessageHeader) ToBufWriter(bw *BufWriter) *BufWriter {
 
 func FromBufReader(br *BufReader) (BlockMessageHeader, error) {
 	version,_ := br.ReadU8()
-	prevBlockMessageHeaderId,_ := br.ReadFixed(32)
-	messageId,_ := br.ReadFixed(32)
+	num := 32
+	prevBlockMessageHeaderId,_ := br.ReadFixed(&num)
+	num = 32
+	messageId,_ := br.ReadFixed(&num)
 	messageNum,_ := br.ReadU64BE()
 	return NewBlockMessageHeader(version, prevBlockMessageHeaderId, messageId, messageNum), nil
 }
@@ -57,7 +63,7 @@ func (bmh *BlockMessageHeader) ToBuf() []byte {
 }
 
 func FromBuf(buf []byte) (BlockMessageHeader, error) {
-	return FromBufReader(NewBufReader(buf))
+	return FromBufReader(NewBufReader(&buf))
 }
 
 func (bmh *BlockMessageHeader) ToHex() string {

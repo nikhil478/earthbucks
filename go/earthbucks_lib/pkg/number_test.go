@@ -9,11 +9,11 @@ import (
 
 func TestNumbers(t *testing.T) {
     t.Run("U8", func(t *testing.T) {
-        a, err := NewU8(10)
+        a, err := NewU8(*big.NewInt(10))
         if err != nil {
             t.Fatalf("error creating U8: %v", err)
         }
-        b, err := NewU8(20)
+        b, err := NewU8(*big.NewInt(20))
         if err != nil {
             t.Fatalf("error creating U8: %v", err)
         }
@@ -30,11 +30,11 @@ func TestNumbers(t *testing.T) {
     })
 
     t.Run("U16", func(t *testing.T) {
-        a, err := NewU16(10)
+        a, err := NewU16(*big.NewInt(10))
         if err != nil {
             t.Fatalf("error creating U16: %v", err)
         }
-        b, err := NewU16(20)
+        b, err := NewU16(*big.NewInt(20))
         if err != nil {
             t.Fatalf("error creating U16: %v", err)
         }
@@ -51,11 +51,11 @@ func TestNumbers(t *testing.T) {
     })
 
     t.Run("U32", func(t *testing.T) {
-        a, err := NewU32(10)
+        a, err := NewU32(*big.NewInt(10))
         if err != nil {
             t.Fatalf("error creating U32: %v", err)
         }
-        b, err := NewU32(20)
+        b, err := NewU32(*big.NewInt(20))
         if err != nil {
             t.Fatalf("error creating U32: %v", err)
         }
@@ -72,11 +72,11 @@ func TestNumbers(t *testing.T) {
     })
 
     t.Run("U64", func(t *testing.T) {
-        a, err := NewU64(10)
+        a, err := NewU64(*big.NewInt(10))
         if err != nil {
             t.Fatalf("error creating U64: %v", err)
         }
-        b, err := NewU64(20)
+        b, err := NewU64(*big.NewInt(20))
         if err != nil {
             t.Fatalf("error creating U64: %v", err)
         }
@@ -93,11 +93,11 @@ func TestNumbers(t *testing.T) {
     })
 
     t.Run("U128", func(t *testing.T) {
-        a, err := NewU128(big.NewInt(10))
+        a, err := NewU128(*big.NewInt(10))
         if err != nil {
             t.Fatalf("error creating U128: %v", err)
         }
-        b, err := NewU128(big.NewInt(20))
+        b, err := NewU128(*big.NewInt(20))
         if err != nil {
             t.Fatalf("error creating U128: %v", err)
         }
@@ -114,10 +114,10 @@ func TestNumbers(t *testing.T) {
     })
 
     t.Run("U256", func(t *testing.T) {
-        a := NewU256(big.NewInt(10))
-        b := NewU256(big.NewInt(20))
-        sum := a.Add(b)
-        mul:= a.Mul(b)
+        a, _ := NewU256(*big.NewInt(10))
+        b, _ := NewU256(*big.NewInt(20))
+        sum, _ := a.Add(b)
+        mul, _:= a.Mul(b)
         assert.Equal(t, big.NewInt(30).String(), sum.value.String())
         assert.Equal(t, big.NewInt(200).String(), mul.value.String())
     })

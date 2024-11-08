@@ -1,8 +1,10 @@
 package earthbucks
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"math/big"
 )
 
@@ -14,153 +16,163 @@ var (
 	ErrValueExceeds128Bits = errors.New("err value exceeds 128 bits") 
 )
 
-// BufReader reads from a byte buffer
 type BufReader struct {
-	buf []byte
-	pos int
+	buf *[]byte
+	pos *int
 }
 
-// NewBufReader creates a new BufReader
-func NewBufReader(buf []byte) *BufReader {
-	return &BufReader{buf: buf, pos: 0}
+func NewBufReader(buf *[]byte) *BufReader {
+	n := 0
+	return &BufReader{buf: buf, pos: &n}
 }
 
-// EOF checks if the end of the buffer has been reached
 func (r *BufReader) EOF() bool {
-	return r.pos >= len(r.buf)
+	return *r.pos >= len(*r.buf)
 }
 
-// Read reads a specific length from the buffer
-func (r *BufReader) Read(length int) ([]byte, error) {
-	if r.pos+length > len(r.buf) { // len() used correctly on the slice
+func (r *BufReader) Read(length *int) (*[]byte, error) {
+	if *r.pos+*length > len(*r.buf) {
 		return nil, ErrNotEnoughData
 	}
-	data := r.buf[r.pos : r.pos+length] // Slicing the buffer correctly
-	r.pos += length
-	return data, nil
+	buf := *r.buf
+	data := buf[*r.pos : *r.pos+ *length]
+	newBuf := make([]byte, *length)
+	copy(newBuf, data)
+	*r.pos += *length
+
+	return &newBuf, nil
 }
 
-// ReadFixed reads a fixed-size buffer
-func (r *BufReader) ReadFixed(len int) (*FixedBuf, error) {
+
+func (r *BufReader) ReadFixed(len *int) (*FixedBuf, error) {
 	data, err := r.Read(len)
 	if err != nil {
 		return nil, err
 	}
-	return FixedBufFromBuf(&len, &data)
+	return FixedBufFromBuf(len, data)
 }
 
-// ReadRemainder reads the remainder of the buffer
-func (r *BufReader) ReadRemainder() ([]byte, error) {
-	return r.Read(len(r.buf) - r.pos)
+func (r *BufReader) ReadRemainder() (*[]byte, error) {
+	result := len(*r.buf) - *r.pos
+	return r.Read(&result)
 }
 
-// ReadU8 reads an 8-bit unsigned integer
+
 func (r *BufReader) ReadU8() (*U8, error) {
-	data, err := r.Read(1)
+	buf := *r.buf
+	sliceBuf := buf[*r.pos:*r.pos+1]
+	val, err := U8FromBEBuf(&sliceBuf)
 	if err != nil {
 		return nil, err
 	}
-	return NewU8(data[0])
+	*r.pos += 1
+	return val, err
 }
 
-// ReadU16BE reads a 16-bit unsigned integer in big-endian
 func (r *BufReader) ReadU16BE() (*U16, error) {
-	data, err := r.Read(2)
+	buf := *r.buf
+	sliceBuf := buf[*r.pos:*r.pos+1]
+	val, err := U16FromBEBuf(&sliceBuf)
 	if err != nil {
 		return nil, err
 	}
-	return NewU16(binary.BigEndian.Uint16(data))
+	*r.pos += 2
+	return val, err
 }
 
-// ReadU32BE reads a 32-bit unsigned integer in big-endian
 func (r *BufReader) ReadU32BE() (*U32, error) {
-	data, err := r.Read(4)
+	buf := *r.buf
+	sliceBuf := buf[*r.pos:*r.pos+1]
+	val, err := U32FromBEBuf(&sliceBuf)
 	if err != nil {
 		return nil, err
 	}
-	return NewU32(binary.BigEndian.Uint32(data))
+	*r.pos += 4
+	return val, err
 }
 
-// ReadU64BE reads a 64-bit unsigned integer in big-endian
 func (r *BufReader) ReadU64BE() (*U64, error) {
-	data, err := r.Read(8)
+	buf := *r.buf
+	sliceBuf := buf[*r.pos:*r.pos+1]
+	val, err := U64FromBEBuf(&sliceBuf)
 	if err != nil {
 		return nil, err
 	}
-	return NewU64(binary.BigEndian.Uint64(data))
+	*r.pos += 8
+	return val, err
 }
 
-// ReadU128BE reads a 128-bit unsigned integer in big-endian
 func (r *BufReader) ReadU128BE() (*U128, error) {
-    // Read 16 bytes from the buffer
-    data, err := r.Read(16)
-    if err != nil {
-        return nil, err
-    }
-
-    // Convert the byte slice to a big.Int
-    val := new(big.Int).SetBytes(data)
-
-    // Ensure that the value fits within 128 bits
-    if val.BitLen() > 128 {
-        return nil, ErrValueExceeds128Bits
-    }
-    // Create a U128 from the uint128 value
-    return NewU128(val)
-}
-
-
-
-
-// ReadU256BE reads a 256-bit unsigned integer in big-endian
-func (r *BufReader) ReadU256BE() (*U256, error) {
-	data, err := r.Read(32)
+	buf := *r.buf
+	sliceBuf := buf[*r.pos:*r.pos+1]
+	val, err := U128FromBEBuf(&sliceBuf)
 	if err != nil {
 		return nil, err
 	}
-	return NewU256(new(big.Int).SetBytes(data)), nil
+	*r.pos += 16
+	return val, err
 }
 
-// ReadVarIntBuf reads a variable-length integer buffer
+func (r *BufReader) ReadU256BE() (*U256, error) {
+	buf := *r.buf
+	sliceBuf := buf[*r.pos:*r.pos+1]
+	val, err := U256FromBEBuf(&sliceBuf)
+	if err != nil {
+		return nil, err
+	}
+	*r.pos += 32
+	return val, err
+}
+
+
 func (r *BufReader) ReadVarIntBuf() ([]byte, error) {
 	first, err := r.ReadU8()
 	if err != nil {
 		return nil, err
+	} 
+	var firstBuffer bytes.Buffer
+	val , _ := first.N()
+	err = binary.Write(&firstBuffer, binary.BigEndian, val)
+	if err != nil {
+		return nil , err
 	}
-	switch first.value {
+	switch val {
 	case 0xfd:
-		buf, err := r.Read(2)
+		n := 2
+		buf, err := r.Read(&n)
 		if err != nil {
 			return nil, err
 		}
-		if binary.BigEndian.Uint16(buf) < 0xfd {
+		if binary.BigEndian.Uint16(*buf) < 0xfd {
 			return nil, ErrNonMinimalEncoding
 		}
-		return append([]byte{first.value}, buf...), nil
+		return append(firstBuffer.Bytes(), *buf...), nil
 	case 0xfe:
-		buf, err := r.Read(4)
+		n := 4
+		buf, err := r.Read(&n)
 		if err != nil {
 			return nil, err
 		}
-		if binary.BigEndian.Uint32(buf) < 0x10000 {
+		if binary.BigEndian.Uint32(*buf) < 0x10000 {
 			return nil, ErrNonMinimalEncoding
 		}
-		return append([]byte{first.value}, buf...), nil
+		return append(firstBuffer.Bytes(), *buf...), nil
 	case 0xff:
-		buf, err := r.Read(8)
+		n := 8
+		buf, err := r.Read(&n)
 		if err != nil {
 			return nil, err
 		}
-		if binary.BigEndian.Uint64(buf) < 0x100000000 {
+		if binary.BigEndian.Uint64(*buf) < 0x100000000 {
 			return nil, ErrNonMinimalEncoding
 		}
-		return append([]byte{first.value}, buf...), nil
+		return append(firstBuffer.Bytes(), *buf...), nil
 	default:
-		return []byte{first.value}, nil
+		return firstBuffer.Bytes(), nil
 	}
 }
 
-// ReadVarInt reads a variable-length integer
+
 func (r *BufReader) ReadVarInt() (*U64, error) {
 	buf, err := r.ReadVarIntBuf()
 	if err != nil {
@@ -170,13 +182,22 @@ func (r *BufReader) ReadVarInt() (*U64, error) {
 	var value *big.Int
 	switch first {
 	case 0xfd:
-		value = new(big.Int).SetUint64(uint64(binary.BigEndian.Uint16(buf[1:])))
-	case 0xfe:
-		value = new(big.Int).SetUint64(uint64(binary.BigEndian.Uint32(buf[1:])))
-	case 0xff:
-		value = new(big.Int).SetUint64(binary.BigEndian.Uint64(buf[1:]))
-	default:
-		value = new(big.Int).SetUint64(uint64(first))
-	}
-	return NewU64(value.Uint64())
+    	if len(buf) < 3 {
+            return nil, fmt.Errorf("not enough data to read 0xfd varint")
+        }
+        value = new(big.Int).SetUint64(uint64(binary.BigEndian.Uint16(buf[1:3])))
+    case 0xfe:
+        if len(buf) < 5 {
+            return nil, fmt.Errorf("not enough data to read 0xfe varint")
+        }
+        value = new(big.Int).SetUint64(uint64(binary.BigEndian.Uint32(buf[1:5])))
+    case 0xff:
+        if len(buf) < 9 {
+            return nil, fmt.Errorf("not enough data to read 0xff varint")
+        }
+        value = new(big.Int).SetUint64(binary.BigEndian.Uint64(buf[1:9]))
+    default:
+       value = new(big.Int).SetUint64(uint64(first))
+    }
+	return NewU64(*value)
 }

@@ -1,23 +1,18 @@
 package earthbucks
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
 )
 
-// Error definitions
 var (
 	ErrInvalidValue   = errors.New("value is not valid")
 	ErrDivisionByZero = errors.New("division by zero")
 )
 
-
-// TODO: Review Using float64 as it is equivalent to number and big.Int as it equivalent to bigInt
-// BasicNumber defines an abstract base type for basic numbers.
-type BasicNumber interface {
+type IBasicNumber interface {
 	Add(other BasicNumber) (BasicNumber, error)
 	Sub(other BasicNumber) (BasicNumber, error)
 	Mul(other BasicNumber) (BasicNumber, error)
@@ -28,522 +23,420 @@ type BasicNumber interface {
 	ToHex() string
 }
 
-// U8 represents an 8-bit unsigned integer.
+type BasicNumber struct {
+	value *big.Int
+	min   *big.Int
+	max   *big.Int
+}
+
+func NewBasicNumber(value, min, max *big.Int) (*BasicNumber, error) {
+	if value.Cmp(min) < 0 || value.Cmp(max) > 0 {
+		return nil, fmt.Errorf("Value %s is not a valid number", value)
+	}
+
+	return &BasicNumber{
+		value: new(big.Int).Set(value),
+		min:   new(big.Int).Set(min),
+		max:   new(big.Int).Set(max),
+	}, nil
+}
+
 type U8 struct {
-	value uint8
+	*BasicNumber
 }
 
-func NewU8(value uint8) (*U8, error) {
-	if value < 0x00 || value > 0xff {
-		return nil, ErrInvalidValue
+func NewU8(value big.Int) (*U8, error) {
+	min := new(big.Int)
+	min.SetString("0x00", 0) 
+	max := new(big.Int)
+	max.SetString("0xff", 0) 
+	basicNumber, err := NewBasicNumber(&value, min, max)
+	if err != nil {
+		return nil, err
 	}
-	return &U8{value: value}, nil
+	return &U8{BasicNumber: basicNumber}, nil
 }
 
-func (u *U8) Add(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U8)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for addition")
-	}
-	result := u.value + o.value
-	return NewU8(result)
+func (u *U8) Add(other *U8) (*U8, error) {
+	result := new(big.Int).Add(u.value, other.value)
+	return NewU8(*result)
 }
 
-func (u *U8) Sub(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U8)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for subtraction")
-	}
-	result := u.value - o.value
-	return NewU8(result)
+func (u *U8) Sub(other *U8) (*U8, error) {
+	result := new(big.Int).Sub(u.value, other.value)
+	return NewU8(*result)
 }
 
-func (u *U8) Mul(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U8)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for multiplication")
-	}
-	result := u.value * o.value
-	return NewU8(result)
+func (u *U8) Mul(other *U8) (*U8, error) {
+	result := new(big.Int).Mul(u.value,other.value)
+	return NewU8(*result)
 }
 
-func (u *U8) Div(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U8)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for division")
-	}
-	if o.value == 0 {
-		return nil, ErrDivisionByZero
-	}
-	result := u.value / o.value
-	return NewU8(result)
+func (u *U8) Div(other *U8) (*U8, error) {
+	result := new(big.Int).Div(u.value, other.value)
+	return NewU8(*result)
 }
 
 func (u *U8) Bn() *big.Int {
-	bn := new(big.Int)
-	bn.SetUint64(uint64(u.value))
-	return bn
+	return u.value
 }
 
-func (u *U8) N() float64 {
-	return float64(u.value)
+func (u *U8) N() (float64, big.Accuracy) {
+	return u.value.Float64()
 }
 
 func (u *U8) ToBEBuf() []byte {
-	buf := make([]byte, 1)
-	buf[0] = u.value
-	return buf
+	return u.value.Bytes()
 }
 
 func (u *U8) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
-// U16 represents a 16-bit unsigned integer.
+func U8FromBEBuf(buf *[]byte) (*U8, error) {
+	bigInt := new(big.Int).SetBytes(*buf)
+	return NewU8(*bigInt)
+}
+
+func U8FromHex(hex *string) (*U8, error) {
+	n := 1 
+	ebxBuf, err := EbxBufFromHex(&n, hex)
+	if err != nil {
+		return nil, err
+	}
+	return U8FromBEBuf(ebxBuf.buf)
+}
+
 type U16 struct {
-	value uint16
+	*BasicNumber
 }
 
-// NewU16 creates a new U16 instance with validation.
-func NewU16(value uint16) (*U16, error) {
-	if value < 0x0000 || value > 0xffff {
-		return nil, ErrInvalidValue
+func NewU16(value big.Int) (*U16, error) {
+	min := new(big.Int)
+	min.SetString("0x0000", 0) 
+	max := new(big.Int)
+	max.SetString("0xffff", 0) 
+	basicNumber, err := NewBasicNumber(&value, min, max)
+	if err != nil {
+		return nil, err
 	}
-	return &U16{value: value}, nil
+	return &U16{BasicNumber: basicNumber}, nil
 }
 
-// Add adds another U16 to the current U16.
-func (u *U16) Add(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U16)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for addition")
-	}
-	result := u.value + o.value
-	return NewU16(result)
+func (u *U16) Add(other *U16) (*U16, error) {
+	result := new(big.Int).Add(u.value, other.value)
+	return NewU16(*result)
 }
 
-// Sub subtracts another U16 from the current U16.
-func (u *U16) Sub(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U16)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for subtraction")
-	}
-	result := u.value - o.value
-	return NewU16(result)
+func (u *U16) Sub(other *U16) (*U16, error) {
+	result := new(big.Int).Sub(u.value, other.value)
+	return NewU16(*result)
 }
 
-// Mul multiplies another U16 with the current U16.
-func (u *U16) Mul(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U16)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for multiplication")
-	}
-	result := u.value * o.value
-	return NewU16(result)
+func (u *U16) Mul(other *U16) (*U16, error) {
+	result := new(big.Int).Mul(u.value,other.value)
+	return NewU16(*result)
 }
 
-// Div divides the current U16 by another U16.
-func (u *U16) Div(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U16)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for division")
-	}
-	if o.value == 0 {
-		return nil, ErrDivisionByZero
-	}
-	result := u.value / o.value
-	return NewU16(result)
+func (u *U16) Div(other *U16) (*U16, error) {
+	result := new(big.Int).Div(u.value, other.value)
+	return NewU16(*result)
 }
 
-// Bn returns the value as a *big.Int.
 func (u *U16) Bn() *big.Int {
-	bn := new(big.Int)
-	bn.SetUint64(uint64(u.value))
-	return bn
+	return u.value
 }
 
-// N returns the value as a float64.
-func (u *U16) N() float64 {
-	return float64(u.value)
+func (u *U16) N() (float64, big.Accuracy) {
+	return u.value.Float64()
 }
 
-// ToBEBuf converts the U16 value to a byte buffer in big-endian order.
 func (u *U16) ToBEBuf() []byte {
-	buf := make([]byte, 2)
-	binary.BigEndian.PutUint16(buf, u.value)
-	return buf
+	return u.value.Bytes()
 }
 
-// ToHex converts the U16 value to a hexadecimal string.
 func (u *U16) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
-// FromBEBufU16 creates a U16 instance from a byte buffer.
-func FromBEBufU16(buf []byte) (*U16, error) {
-	if len(buf) != 2 {
-		return nil, ErrInvalidSize
-	}
-	return NewU16(binary.BigEndian.Uint16(buf))
+func U16FromBEBuf(buf *[]byte) (*U16, error) {
+	bigInt := new(big.Int).SetBytes(*buf)
+	return NewU16(*bigInt)
 }
 
-// FromHex creates a U16 instance from a hexadecimal string.
-func FromHexU16(hexStr string) (*U16, error) {
-	buf, err := hex.DecodeString(hexStr)
+func U16FromHex(hex *string) (*U16, error) {
+	n := 2
+	ebxBuf, err := EbxBufFromHex(&n, hex)
 	if err != nil {
 		return nil, err
 	}
-	return FromBEBufU16(buf)
+	return U16FromBEBuf(ebxBuf.buf)
 }
 
-// U32 represents a 32-bit unsigned integer.
 type U32 struct {
-	value uint32
+	*BasicNumber
 }
 
-func NewU32(value uint32) (*U32, error) {
-	if value < 0x00000000 || value > 0xffffffff {
-		return nil, ErrInvalidValue
+func NewU32(value big.Int) (*U32, error) {
+	min := new(big.Int)
+	min.SetString("0x00000000", 0) 
+	max := new(big.Int)
+	max.SetString("0xffffffff", 0) 
+	basicNumber, err := NewBasicNumber(&value, min, max)
+	if err != nil {
+		return nil, err
 	}
-	return &U32{value: value}, nil
+	return &U32{BasicNumber: basicNumber}, nil
 }
 
-func (u *U32) Add(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U32)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for addition")
-	}
-	result := u.value + o.value
-	return NewU32(result)
+
+func (u *U32) Add(other *U32) (*U32, error) {
+	result := new(big.Int).Add(u.value, other.value)
+	return NewU32(*result)
 }
 
-func (u *U32) Sub(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U32)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for subtraction")
-	}
-	result := u.value - o.value
-	return NewU32(result)
+func (u *U32) Sub(other *U32) (*U32, error) {
+	result := new(big.Int).Sub(u.value, other.value)
+	return NewU32(*result)
 }
 
-func (u *U32) Mul(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U32)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for multiplication")
-	}
-	result := u.value * o.value
-	return NewU32(result)
+func (u *U32) Mul(other *U32) (*U32, error) {
+	result := new(big.Int).Mul(u.value,other.value)
+	return NewU32(*result)
 }
 
-func (u *U32) Div(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U32)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for division")
-	}
-	if o.value == 0 {
-		return nil, fmt.Errorf("division by zero")
-	}
-	result := u.value / o.value
-	return NewU32(result)
+func (u *U32) Div(other *U32) (*U32, error) {
+	result := new(big.Int).Div(u.value, other.value)
+	return NewU32(*result)
 }
 
 func (u *U32) Bn() *big.Int {
-	bn := new(big.Int)
-    bn.SetUint64(uint64(u.value))
-	return bn
+	return u.value
 }
 
-func (u *U32) N() float64 {
-	return float64(u.value)
+func (u *U32) N() (float64, big.Accuracy) {
+	return u.value.Float64()
 }
 
 func (u *U32) ToBEBuf() []byte {
-	buf := make([]byte, 4)
-	binary.BigEndian.PutUint32(buf, u.value)
-	return buf
+	return u.value.Bytes()
 }
 
 func (u *U32) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
-func FromBEBufU32(buf []byte) (*U32, error) {
-	if len(buf) != 4 {
-		return nil, ErrInvalidSize
-	}
-	return NewU32(binary.BigEndian.Uint32(buf))
+func U32FromBEBuf(buf *[]byte) (*U32, error) {
+	bigInt := new(big.Int).SetBytes(*buf)
+	return NewU32(*bigInt)
 }
 
-func FromHexU32(hexStr string) (*U32, error) {
-	buf, err := hex.DecodeString(hexStr)
+func U32FromHex(hex *string) (*U32, error) {
+	n := 4
+	ebxBuf, err := EbxBufFromHex(&n, hex)
 	if err != nil {
 		return nil, err
 	}
-	return FromBEBufU32(buf)
+	return U32FromBEBuf(ebxBuf.buf)
 }
 
-// U64 represents a 64-bit unsigned integer.
 type U64 struct {
-	value uint64
+	*BasicNumber
 }
 
-func NewU64(value uint64) (*U64, error) {
-	if value < 0x0000000000000000 || value > 0xffffffffffffffff {
-		return nil, ErrInvalidValue
+
+func NewU64(value big.Int) (*U64, error) {
+	min := new(big.Int)
+	min.SetString("0x0000000000000000", 0) 
+	max := new(big.Int)
+	max.SetString("0xffffffffffffffff", 0) 
+	basicNumber, err := NewBasicNumber(&value, min, max)
+	if err != nil {
+		return nil, err
 	}
-	return &U64{value: value}, nil
+	return &U64{BasicNumber: basicNumber}, nil
 }
 
-func (u *U64) Add(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U64)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for addition")
-	}
-	result := u.value + o.value
-	return NewU64(result)
+
+func (u *U64) Add(other *U64) (*U64, error) {
+	result := new(big.Int).Add(u.value, other.value)
+	return NewU64(*result)
 }
 
-func (u *U64) Sub(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U64)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for subtraction")
-	}
-	result := u.value - o.value
-	return NewU64(result)
+func (u *U64) Sub(other *U64) (*U64, error) {
+	result := new(big.Int).Sub(u.value, other.value)
+	return NewU64(*result)
 }
 
-func (u *U64) Mul(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U64)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for multiplication")
-	}
-	result := u.value * o.value
-	return NewU64(result)
+func (u *U64) Mul(other *U64) (*U64, error) {
+	result := new(big.Int).Mul(u.value,other.value)
+	return NewU64(*result)
 }
 
-func (u *U64) Div(other BasicNumber) (BasicNumber, error) {
-	o, ok := other.(*U64)
-	if !ok {
-		return nil, fmt.Errorf("invalid type for division")
-	}
-	if o.value == 0 {
-		return nil, fmt.Errorf("division by zero")
-	}
-	result := u.value / o.value
-	return NewU64(result)
+func (u *U64) Div(other *U64) (*U64, error) {
+	result := new(big.Int).Div(u.value, other.value)
+	return NewU64(*result)
 }
 
 func (u *U64) Bn() *big.Int {
-	bn := new(big.Int)
-    bn.SetUint64(uint64(u.value))
-	return bn
+	return u.value
 }
 
-func (u *U64) N() float64 {
-	return float64(u.value)
+func (u *U64) N() (float64, big.Accuracy) {
+	return u.value.Float64()
 }
 
 func (u *U64) ToBEBuf() []byte {
-	buf := make([]byte, 8)
-	binary.BigEndian.PutUint64(buf, u.value)
-	return buf
+	return u.value.Bytes()
 }
 
 func (u *U64) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
-func FromBEBufU64(buf []byte) (*U64, error) {
-	if len(buf) != 8 {
-		return nil, ErrInvalidSize
-	}
-	return NewU64(binary.BigEndian.Uint64(buf))
+func U64FromBEBuf(buf *[]byte) (*U64, error) {
+	bigInt := new(big.Int).SetBytes(*buf)
+	return NewU64(*bigInt)
 }
 
-func FromHexU64(hexStr string) (*U64, error) {
-	buf, err := hex.DecodeString(hexStr)
+func U64FromHex(hex *string) (*U64, error) {
+	n := 8
+	ebxBuf, err := EbxBufFromHex(&n, hex)
 	if err != nil {
 		return nil, err
 	}
-	return FromBEBufU64(buf)
+	return U64FromBEBuf(ebxBuf.buf)
 }
 
-// U128 represents a 128-bit unsigned integer.
 type U128 struct {
-	value *big.Int
+	*BasicNumber
 }
 
-// NewU128 creates a new U128 instance if the value is within the valid range.
-func NewU128(value *big.Int) (*U128, error) {
-	// Define the maximum value for a 128-bit unsigned integer
-	maxU128 := new(big.Int)
-	maxU128.SetUint64(0xffffffffffffffff) // 64-bit max value
-	maxU128.Lsh(maxU128, 64) // Shift left by 64 bits to get 128-bit max value
-
-	// Check if the value is within the valid range
-	if value.Cmp(maxU128) > 0 || value.Sign() < 0 {
-		return nil, ErrInvalidValue
+func NewU128(value big.Int) (*U128, error) {
+	min := new(big.Int)
+	min.SetString("0x00000000000000000000000000000000", 0) 
+	max := new(big.Int)
+	max.SetString("0xffffffffffffffffffffffffffffffff", 0) 
+	basicNumber, err := NewBasicNumber(&value, min, max)
+	if err != nil {
+		return nil, err
 	}
-	return &U128{value: new(big.Int).Set(value)}, nil
+	return &U128{BasicNumber: basicNumber}, nil
 }
 
-// Add performs addition of two U128 values.
+
 func (u *U128) Add(other *U128) (*U128, error) {
-	result := new(big.Int).Set(u.value)
-	result.Add(result, other.value)
-	return NewU128(result)
+	result := new(big.Int).Add(u.value, other.value)
+	return NewU128(*result)
 }
 
-// Sub performs subtraction of two U128 values.
 func (u *U128) Sub(other *U128) (*U128, error) {
-	result := new(big.Int).Set(u.value)
-	result.Sub(result, other.value)
-	return NewU128(result)
+	result := new(big.Int).Sub(u.value, other.value)
+	return NewU128(*result)
 }
 
-// Mul performs multiplication of two U128 values.
 func (u *U128) Mul(other *U128) (*U128, error) {
-	result := new(big.Int).Set(u.value)
-	result.Mul(result, other.value)
-	return NewU128(result)
+	result := new(big.Int).Mul(u.value,other.value)
+	return NewU128(*result)
 }
 
-// Div performs division of two U128 values.
 func (u *U128) Div(other *U128) (*U128, error) {
-	if other.value.Sign() == 0 {
-		return nil, errors.New("division by zero")
-	}
-	result := new(big.Int).Set(u.value)
-	result.Div(result, other.value)
-	return NewU128(result)
+	result := new(big.Int).Div(u.value, other.value)
+	return NewU128(*result)
 }
 
-// Bn returns the U128 value as a big.Int.
 func (u *U128) Bn() *big.Int {
-	return new(big.Int).Set(u.value)
+	return u.value
 }
 
-// N converts the U128 value to float64.
-func (u *U128) N() float64 {
-	// Conversion should be done with caution; may lose precision for large values
-	float64Val,_ := u.value.Float64()
-	return float64Val
+func (u *U128) N() (float64, big.Accuracy) {
+	return u.value.Float64()
 }
 
-// ToBEBuf converts the U128 value to a big-endian byte slice.
 func (u *U128) ToBEBuf() []byte {
-	buf := make([]byte, 16)
-	binary.BigEndian.PutUint64(buf[:8], u.value.Rsh(u.value, 64).Uint64())
-	binary.BigEndian.PutUint64(buf[8:], u.value.Uint64())
-	return buf
+	return u.value.Bytes()
 }
 
-// ToHex returns the hexadecimal string representation of the U128 value.
 func (u *U128) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
-// FromBEBufU128 creates a U128 instance from a big-endian byte slice.
-func FromBEBufU128(buf []byte) (*U128, error) {
-	if len(buf) != 16 {
-		return nil, ErrInvalidSize
-	}
-
-	// Extract the high and low 64-bit parts from the buffer
-	high := binary.BigEndian.Uint64(buf[:8])
-	low := binary.BigEndian.Uint64(buf[8:])
-
-	// Combine the high and low parts into a single big.Int
-	value := new(big.Int)
-	value.SetUint64(low)
-	value.Lsh(value, 64)
-	value.Or(value, new(big.Int).SetUint64(high))
-
-	// Create and return the U128 instance
-	return NewU128(value)
+func U128FromBEBuf(buf *[]byte) (*U128, error) {
+	bigInt := new(big.Int).SetBytes(*buf)
+	return NewU128(*bigInt)
 }
 
-func FromHexU128(hexStr string) (*U128, error) {
-	buf, err := hex.DecodeString(hexStr)
+func U128FromHex(hex *string) (*U128, error) {
+	n := 16
+	ebxBuf, err := EbxBufFromHex(&n, hex)
 	if err != nil {
 		return nil, err
 	}
-	return FromBEBufU128(buf)
+	return U128FromBEBuf(ebxBuf.buf)
 }
 
-// U256 represents a 256-bit unsigned integer.
 type U256 struct {
-	value *big.Int
+	*BasicNumber
 }
 
-// NewU256 creates a new U256 instance from a *big.Int value.
-func NewU256(value *big.Int) *U256 {
-	return &U256{value: value}
-}
-
-// NewU256FromUint64 creates a U256 instance from a uint64.
-func NewU256FromUint64(value uint64) *U256 {
-	return &U256{value: new(big.Int).SetUint64(value)}
-}
-
-// Add adds another U256 to the current U256 and returns the result.
-func (u *U256) Add(other *U256) *U256 {
-	result := new(big.Int).Add(u.value, other.value)
-	return &U256{value: result}
-}
-
-// Sub subtracts another U256 from the current U256 and returns the result.
-func (u *U256) Sub(other *U256) *U256 {
-	result := new(big.Int).Sub(u.value, other.value)
-	return &U256{value: result}
-}
-
-// Mul multiplies another U256 with the current U256 and returns the result.
-func (u *U256) Mul(other *U256) *U256 {
-	result := new(big.Int).Mul(u.value, other.value)
-	return &U256{value: result}
-}
-
-// Div divides the current U256 by another U256 and returns the result.
-func (u *U256) Div(other *U256) (*U256, error) {
-	if other.value.Cmp(big.NewInt(0)) == 0 {
-		return nil, fmt.Errorf("division by zero")
+func NewU256(value big.Int) (*U256, error) {
+	min := new(big.Int)
+	min.SetString("0x0000000000000000000000000000000000000000000000000000000000000000", 0) 
+	max := new(big.Int)
+	max.SetString("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0) 
+	basicNumber, err := NewBasicNumber(&value, min, max)
+	if err != nil {
+		return nil, err
 	}
+	return &U256{BasicNumber: basicNumber}, nil
+}
+
+func (u *U256) Add(other *U256) (*U256, error) {
+	result := new(big.Int).Add(u.value, other.value)
+	return NewU256(*result)
+}
+
+func (u *U256) Sub(other *U256) (*U256, error) {
+	result := new(big.Int).Sub(u.value, other.value)
+	return NewU256(*result)
+}
+
+func (u *U256) Mul(other *U256) (*U256, error) {
+	result := new(big.Int).Mul(u.value,other.value)
+	return NewU256(*result)
+}
+
+func (u *U256) Div(other *U256) (*U256, error) {
 	result := new(big.Int).Div(u.value, other.value)
-	return &U256{value: result}, nil
+	return NewU256(*result)
 }
 
-// ToBEBuf converts the U256 value to a big-endian byte buffer.
+func (u *U256) Bn() *big.Int {
+	return u.value
+}
+
+func (u *U256) N() (float64, big.Accuracy) {
+	return u.value.Float64()
+}
+
 func (u *U256) ToBEBuf() []byte {
-	buf := u.value.Bytes()
-	// Ensure buffer length is 32 bytes
-	paddedBuf := make([]byte, 32)
-	copy(paddedBuf[32-len(buf):], buf)
-	return paddedBuf
+	return u.value.Bytes()
 }
 
-// ToHex converts the U256 value to a hexadecimal string.
 func (u *U256) ToHex() string {
 	return hex.EncodeToString(u.ToBEBuf())
 }
 
-// FromBEBuf creates a U256 from a big-endian byte buffer.
-func FromBEBufU256(buf []byte) (*U256, error) {
-	if len(buf) != 32 {
-		return nil, fmt.Errorf("buffer length must be 32 bytes")
-	}
-	value := new(big.Int).SetBytes(buf)
-	return &U256{value: value}, nil
+func U256FromBEBuf(buf *[]byte) (*U256, error) {
+	bigInt := new(big.Int).SetBytes(*buf)
+	return NewU256(*bigInt)
 }
 
-// FromHex creates a U256 from a hexadecimal string.
-func FromHexU256(hexStr string) (*U256, error) {
-	buf, err := hex.DecodeString(hexStr)
+func U256FromHex(hex *string) (*U256, error) {
+	n := 16
+	ebxBuf, err := EbxBufFromHex(&n, hex)
 	if err != nil {
 		return nil, err
 	}
-	if len(buf) != 32 {
-		return nil, fmt.Errorf("invalid hex string length for U256")
-	}
-	return FromBEBufU256(buf)
+	return U256FromBEBuf(ebxBuf.buf)
 }
