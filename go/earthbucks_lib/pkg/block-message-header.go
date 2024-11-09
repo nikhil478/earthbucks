@@ -41,9 +41,9 @@ func FromMessage(prevBlockMessageHeaderId *FixedBuf, message string, messageNum 
 }
 
 func (bmh *BlockMessageHeader) ToBufWriter(bw *BufWriter) *BufWriter {
-	bw.WriteU8BE(bmh.version)
-	bw.Write(*bmh.prevBlockMessageHeaderId.buf)
-	bw.Write(*bmh.messageId.buf)
+	bw.WriteU8(bmh.version)
+	bw.Write(bmh.prevBlockMessageHeaderId.buf)
+	bw.Write(bmh.messageId.buf)
 	bw.WriteU64BE(bmh.messageNum)
 	return bw
 }

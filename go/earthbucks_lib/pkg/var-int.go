@@ -1,5 +1,7 @@
 package earthbucks
 
+import "math/big"
+
 type VarInt struct {
    buf *[]byte
 } 
@@ -19,17 +21,15 @@ func (vi *VarInt) ToBuf() *[]byte {
 } 
 
 func (vi *VarInt) ToU64() (*U64, error) {
-	return NewBufReader(*vi.buf).ReadVarInt()
+	return NewBufReader(vi.buf).ReadVarInt()
 }
 
 func (vi *VarInt) ToU32() (*U32, error) {
-	u64, err := NewBufReader(*vi.buf).ReadVarInt()
+	u64, err := NewBufReader(vi.buf).ReadVarInt()
 	if err != nil {
 		return nil, err
 	}
-	return &U32{
-		value: uint32(u64.value),
-	}, nil
+	return NewU32(*u64.value)
 }
 
 func (vi *VarInt) isMinimal() bool {
@@ -49,7 +49,7 @@ func (vi *VarInt) isMinimal() bool {
 
 func VarIntFromU64(u64 *U64) *VarInt {
 	buf := NewBufWriter().WriteVarInt(u64).ToBuf();
-	return NewVarInt(buf)
+	return NewVarInt(*buf)
 }
 
 func VarIntFromU32(u32 *U32) *VarInt {

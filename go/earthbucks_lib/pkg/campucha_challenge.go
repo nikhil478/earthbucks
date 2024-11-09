@@ -20,7 +20,7 @@ func CompuchaChallengeFromRandomNonce(challengeId *FixedBuf) (*CompuchaChallenge
 	if err != nil {
 		return nil, err
 	}
-    nonce, err := NewBufReader(*nonceBuf.buf).ReadU128BE()
+    nonce, err := NewBufReader(nonceBuf.buf).ReadU128BE()
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,8 @@ func CompuchaChallengeFromRandomNonce(challengeId *FixedBuf) (*CompuchaChallenge
 }
 
 func CompuchaChallengeFromBufReader(br BufReader) (*CompuchaChallenge, error) {
-	challengeId,err := br.ReadFixed(16)
+	n := 16
+	challengeId,err := br.ReadFixed(&n)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,7 @@ func CompuchaChallengeFromBufReader(br BufReader) (*CompuchaChallenge, error) {
 }
 
 func CompuchaChallengeFromBuf(buf *FixedBuf) (*CompuchaChallenge, error) {
-	return CompuchaChallengeFromBufReader(*NewBufReader(*buf.buf))
+	return CompuchaChallengeFromBufReader(*NewBufReader(buf.buf))
 }
 
 func CompuchaChallengeFromHex(hex string) (*CompuchaChallenge, error) {
@@ -54,7 +55,7 @@ func CompuchaChallengeFromHex(hex string) (*CompuchaChallenge, error) {
 
 func (cc *CompuchaChallenge) ToBuf() (*FixedBuf, error) {
 	bw := NewBufWriter()
-	bw.Write(*cc.challengeId.buf)
+	bw.Write(cc.challengeId.buf)
 	bw.WriteU128BE(cc.nonce)
 	sysBuf := bw.ToBuf()
 	size := SIZE
@@ -93,7 +94,7 @@ func (cc *CompuchaChallenge) IsTargetValid(targetNonce *U256) (bool, error) {
 	}
 
 	// Convert the hash buffer to U256
-	hashNum, err := FromBEBufU256(*hashBuf.buf)
+	hashNum, err := U256FromBEBuf(hashBuf.buf)
 	if err != nil {
 		return false, err
 	}
