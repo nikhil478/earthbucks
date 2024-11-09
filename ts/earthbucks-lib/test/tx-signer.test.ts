@@ -10,7 +10,7 @@ import { TxSigner } from "../src/tx-signer.js";
 import { ScriptInterpreter } from "../src/script-interpreter.js";
 import { HashCache } from "../src/tx.js";
 import { FixedBuf } from "../src/buf.js";
-import type { SysBuf } from "../src/buf.js";
+import type { WebBuf } from "../src/buf.js";
 import { TxOutBn } from "../src/tx-out-bn.js";
 import { U8, U16, U32, U64 } from "../src/numbers.js";
 import type { TxIn } from "../src/tx-in.js";
@@ -28,7 +28,7 @@ describe("TxSigner", () => {
     for (let i = 0; i < 5; i++) {
       const key = KeyPair.fromRandom();
       const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-      pkhKeyMap.add(key, pkh.buf.buf);
+      pkhKeyMap.add(key, pkh);
       const script = Script.fromPkhOutput(pkh);
       const txOut = new TxOut(new U64(100), script);
       const txOutBn = new TxOutBn(txOut, new U32(0n));
@@ -58,9 +58,9 @@ describe("TxSigner", () => {
     const txInput = tx.inputs[0] as TxIn;
     const txOutBn = txOutBnMap.get(txInput.inputTxId, txInput.inputTxNOut);
     const execScript = txOutBn?.txOut.script as Script;
-    const sigBuf = txInput.script.chunks[0]?.buf as SysBuf;
+    const sigBuf = txInput.script.chunks[0]?.buf as WebBuf;
     expect(sigBuf?.length).toBe(65);
-    const pubKeyBuf = txInput.script.chunks[1]?.buf as SysBuf;
+    const pubKeyBuf = txInput.script.chunks[1]?.buf as WebBuf;
     expect(pubKeyBuf?.length).toBe(33);
 
     const stack = [sigBuf, pubKeyBuf];
@@ -76,7 +76,7 @@ describe("TxSigner", () => {
     );
 
     const result = scriptInterpreter.evalScript();
-    expect(result).toBe(true);
+    expect(!!result.result).toBe(true);
   });
 
   test("should sign two inputs", () => {
@@ -103,9 +103,9 @@ describe("TxSigner", () => {
     const txInput1 = tx.inputs[0] as TxIn;
     const txOutput1 = txOutBnMap.get(txInput1.inputTxId, txInput1.inputTxNOut);
     const execScript1 = txOutput1?.txOut.script as Script;
-    const sigBuf1 = txInput1.script.chunks[0]?.buf as SysBuf;
+    const sigBuf1 = txInput1.script.chunks[0]?.buf as WebBuf;
     expect(sigBuf1?.length).toBe(65);
-    const pubKeyBuf1 = txInput1.script.chunks[1]?.buf as SysBuf;
+    const pubKeyBuf1 = txInput1.script.chunks[1]?.buf as WebBuf;
     expect(pubKeyBuf1?.length).toBe(33);
 
     const stack1 = [sigBuf1, pubKeyBuf1];
@@ -121,14 +121,14 @@ describe("TxSigner", () => {
     );
 
     const result1 = scriptInterpreter1.evalScript();
-    expect(result1).toBe(true);
+    expect(!!result1.result).toBe(true);
 
     const txInput2 = tx.inputs[1] as TxIn;
     const txOutput2 = txOutBnMap.get(txInput2.inputTxId, txInput2.inputTxNOut);
     const execScript2 = txOutput2?.txOut.script as Script;
-    const sigBuf2 = txInput2.script.chunks[0]?.buf as SysBuf;
+    const sigBuf2 = txInput2.script.chunks[0]?.buf as WebBuf;
     expect(sigBuf2?.length).toBe(65);
-    const pubKeyBuf2 = txInput2.script.chunks[1]?.buf as SysBuf;
+    const pubKeyBuf2 = txInput2.script.chunks[1]?.buf as WebBuf;
     expect(pubKeyBuf2?.length).toBe(33);
 
     const stack2 = [sigBuf2, pubKeyBuf2];
@@ -144,6 +144,6 @@ describe("TxSigner", () => {
     );
 
     const result2 = scriptInterpreter2.evalScript();
-    expect(result2).toBe(true);
+    expect(!!result2.result).toBe(true);
   });
 });

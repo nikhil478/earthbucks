@@ -1,7 +1,6 @@
-import { FixedBuf, SysBuf } from "./buf.js";
+import { FixedBuf, WebBuf } from "./buf.js";
 import { Hash } from "./hash.js";
-import secp256k1 from "secp256k1";
-const { ecdsaSign, ecdsaVerify } = secp256k1;
+import { ecdsab3Sign, ecdsab3Verify } from "./ecdsab3.js";
 import type { PrivKey } from "./priv-key.js";
 import { PubKey } from "./pub-key.js";
 import { BufReader } from "./buf-reader.js";
@@ -11,14 +10,14 @@ export class SignedMessage {
   sig: FixedBuf<64>;
   pubKey: FixedBuf<33>;
   mac: FixedBuf<32>;
-  message: SysBuf;
+  message: WebBuf;
   keyStr: string;
 
   constructor(
     sig: FixedBuf<64>,
     pubKey: FixedBuf<33>,
     mac: FixedBuf<32>,
-    message: SysBuf,
+    message: WebBuf,
     keyStr: string,
   ) {
     this.sig = sig;
@@ -28,19 +27,18 @@ export class SignedMessage {
     this.keyStr = keyStr;
   }
 
-  static createMac(message: SysBuf, keyStr: string): FixedBuf<32> {
-    const key = Hash.blake3Hash(SysBuf.from(keyStr));
+  static createMac(message: WebBuf, keyStr: string): FixedBuf<32> {
+    const key = Hash.blake3Hash(WebBuf.from(keyStr));
     return Hash.blake3Mac(key, message);
   }
 
   static fromSignMessage(
     privKey: PrivKey,
-    message: SysBuf,
+    message: WebBuf,
     keyStr: string,
   ): SignedMessage {
     const mac = SignedMessage.createMac(message, keyStr);
-    const sigObj = ecdsaSign(mac.buf, privKey.toBuf().buf);
-    const sigBuf = (FixedBuf<64>).fromBuf(64, SysBuf.from(sigObj.signature));
+    const sigBuf = ecdsab3Sign(mac, privKey);
     const pubKey = privKey.toPubKeyEbxBuf();
     return new SignedMessage(sigBuf, pubKey, mac, message, keyStr);
   }
@@ -56,13 +54,13 @@ export class SignedMessage {
     if (!pubKey.toBuf().buf.equals(this.pubKey.buf)) {
       return false;
     }
-    if (!ecdsaVerify(this.sig.buf, mac.buf, this.pubKey.buf)) {
+    if (!ecdsab3Verify(this.sig, mac, PubKey.fromBuf(this.pubKey))) {
       return false;
     }
     return true;
   }
 
-  static fromBuf(buf: SysBuf, keyStr: string): SignedMessage {
+  static fromBuf(buf: WebBuf, keyStr: string): SignedMessage {
     const reader = new BufReader(buf);
     const sig = reader.readFixed(64);
     const pubKey = reader.readFixed(PubKey.SIZE);
@@ -71,7 +69,7 @@ export class SignedMessage {
     return new SignedMessage(sig, pubKey, mac, message, keyStr);
   }
 
-  toBuf(): SysBuf {
+  toBuf(): WebBuf {
     const writer = new BufWriter();
     writer.write(this.sig.buf);
     writer.write(this.pubKey.buf);

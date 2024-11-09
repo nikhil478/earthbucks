@@ -28,11 +28,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
       pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
       user: {
         id: number;
-        pubKey: Buffer;
+        pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
         createdAt: Date;
         name: string | null;
         avatarId: string | null;
+        minPayment: number;
         nSwipes: number;
+        nBlocks: number;
+        isBanned: boolean;
       } | null;
       completeUserProfile: {
         id: number;
@@ -41,7 +44,7 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
         nSwipes: number;
         pubKeyStr: string;
       } | null;
-      sessionTokenId: Buffer | null;
+      sessionTokenId: import("@earthbucks/lib/dist/buf.js").FixedBuf<16> | null;
     };
     meta: object;
     errorShape: import("@trpc/server").DefaultErrorShape;
@@ -78,11 +81,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
           pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
           user: {
             id: number;
-            pubKey: Buffer;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
             createdAt: Date;
             name: string | null;
             avatarId: string | null;
+            minPayment: number;
             nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
           } | null;
           completeUserProfile: {
             id: number;
@@ -91,7 +97,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
             nSwipes: number;
             pubKeyStr: string;
           } | null;
-          sessionTokenId: Buffer | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
         };
         meta: object;
         errorShape: import("@trpc/server").DefaultErrorShape;
@@ -130,11 +138,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -143,7 +154,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -178,11 +191,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
               completeUserProfile: {
                 id: number;
@@ -191,7 +207,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 nSwipes: number;
                 pubKeyStr: string;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
             };
             _input_in: typeof import("@trpc/server").unsetMarker;
             _input_out: typeof import("@trpc/server").unsetMarker;
@@ -232,11 +250,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -245,7 +266,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -280,11 +303,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
               completeUserProfile: {
                 id: number;
@@ -293,7 +319,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 nSwipes: number;
                 pubKeyStr: string;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
             };
             _input_in: string;
             _input_out: import("@earthbucks/lib/dist/signin-response.js").SigninResponse;
@@ -334,11 +362,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -347,7 +378,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -381,11 +414,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
               completeUserProfile: {
                 id: number;
@@ -394,7 +430,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 nSwipes: number;
                 pubKeyStr: string;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
             };
             _input_in: typeof import("@trpc/server").unsetMarker;
             _input_out: typeof import("@trpc/server").unsetMarker;
@@ -436,11 +474,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
           pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
           user: {
             id: number;
-            pubKey: Buffer;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
             createdAt: Date;
             name: string | null;
             avatarId: string | null;
+            minPayment: number;
             nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
           } | null;
           completeUserProfile: {
             id: number;
@@ -449,7 +490,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
             nSwipes: number;
             pubKeyStr: string;
           } | null;
-          sessionTokenId: Buffer | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
         };
         meta: object;
         errorShape: import("@trpc/server").DefaultErrorShape;
@@ -488,11 +531,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -501,7 +547,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -512,13 +560,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -597,11 +650,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -610,7 +666,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -621,13 +679,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -675,7 +738,7 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
         >;
       }
     >;
-    miningTestButton: import("@trpc/server").CreateRouterInner<
+    keys: import("@trpc/server").CreateRouterInner<
       import("@trpc/server").RootConfig<{
         ctx: {
           req: import("fastify").FastifyRequest<
@@ -705,11 +768,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
           pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
           user: {
             id: number;
-            pubKey: Buffer;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
             createdAt: Date;
             name: string | null;
             avatarId: string | null;
+            minPayment: number;
             nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
           } | null;
           completeUserProfile: {
             id: number;
@@ -718,14 +784,192 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
             nSwipes: number;
             pubKeyStr: string;
           } | null;
-          sessionTokenId: Buffer | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
         };
         meta: object;
         errorShape: import("@trpc/server").DefaultErrorShape;
         transformer: import("@trpc/server").DefaultDataTransformer;
       }>,
       {
-        getNewHeader: import("@trpc/server").BuildProcedure<
+        createNewDerivedKey: import("@trpc/server").BuildProcedure<
+          "mutation",
+          {
+            _config: import("@trpc/server").RootConfig<{
+              ctx: {
+                req: import("fastify").FastifyRequest<
+                  import("fastify").RouteGenericInterface,
+                  import("fastify").RawServerDefault,
+                  import("http").IncomingMessage,
+                  import("fastify").FastifySchema,
+                  import("fastify").FastifyTypeProviderDefault,
+                  unknown,
+                  import("fastify").FastifyBaseLogger,
+                  import("fastify/types/type-provider.js").ResolveFastifyRequestType<
+                    import("fastify").FastifyTypeProviderDefault,
+                    import("fastify").FastifySchema,
+                    import("fastify").RouteGenericInterface
+                  >
+                >;
+                res: import("fastify").FastifyReply<
+                  import("fastify").RawServerDefault,
+                  import("http").IncomingMessage,
+                  import("http").ServerResponse<import("http").IncomingMessage>,
+                  import("fastify").RouteGenericInterface,
+                  unknown,
+                  import("fastify").FastifySchema,
+                  import("fastify").FastifyTypeProviderDefault,
+                  unknown
+                >;
+                pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
+                user: {
+                  id: number;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
+                  createdAt: Date;
+                  name: string | null;
+                  avatarId: string | null;
+                  minPayment: number;
+                  nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
+                } | null;
+                completeUserProfile: {
+                  id: number;
+                  name: string;
+                  avatarId: string;
+                  nSwipes: number;
+                  pubKeyStr: string;
+                } | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
+              };
+              meta: object;
+              errorShape: import("@trpc/server").DefaultErrorShape;
+              transformer: import("@trpc/server").DefaultDataTransformer;
+            }>;
+            _meta: object;
+            _ctx_out: {
+              pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
+              user: {
+                id: number;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
+                createdAt: Date;
+                name: string | null;
+                avatarId: string | null;
+                minPayment: number;
+                nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
+              } | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
+              res: import("fastify").FastifyReply<
+                import("fastify").RawServerDefault,
+                import("http").IncomingMessage,
+                import("http").ServerResponse<import("http").IncomingMessage>,
+                import("fastify").RouteGenericInterface,
+                unknown,
+                import("fastify").FastifySchema,
+                import("fastify").FastifyTypeProviderDefault,
+                unknown
+              >;
+              req: import("fastify").FastifyRequest<
+                import("fastify").RouteGenericInterface,
+                import("fastify").RawServerDefault,
+                import("http").IncomingMessage,
+                import("fastify").FastifySchema,
+                import("fastify").FastifyTypeProviderDefault,
+                unknown,
+                import("fastify").FastifyBaseLogger,
+                import("fastify/types/type-provider.js").ResolveFastifyRequestType<
+                  import("fastify").FastifyTypeProviderDefault,
+                  import("fastify").FastifySchema,
+                  import("fastify").RouteGenericInterface
+                >
+              >;
+              completeUserProfile: {
+                id: number;
+                name: string;
+                avatarId: string;
+                nSwipes: number;
+                pubKeyStr: string;
+              } | null;
+            };
+            _input_in: typeof import("@trpc/server").unsetMarker;
+            _input_out: typeof import("@trpc/server").unsetMarker;
+            _output_in: typeof import("@trpc/server").unsetMarker;
+            _output_out: typeof import("@trpc/server").unsetMarker;
+          },
+          {
+            id: number;
+            clientPubKey: string;
+            clientDerivationPrivKey: string;
+            derivedPubKey: string;
+            derivedPkh: string;
+            createdAt: Date;
+          }
+        >;
+      }
+    >;
+    miningButton: import("@trpc/server").CreateRouterInner<
+      import("@trpc/server").RootConfig<{
+        ctx: {
+          req: import("fastify").FastifyRequest<
+            import("fastify").RouteGenericInterface,
+            import("fastify").RawServerDefault,
+            import("http").IncomingMessage,
+            import("fastify").FastifySchema,
+            import("fastify").FastifyTypeProviderDefault,
+            unknown,
+            import("fastify").FastifyBaseLogger,
+            import("fastify/types/type-provider.js").ResolveFastifyRequestType<
+              import("fastify").FastifyTypeProviderDefault,
+              import("fastify").FastifySchema,
+              import("fastify").RouteGenericInterface
+            >
+          >;
+          res: import("fastify").FastifyReply<
+            import("fastify").RawServerDefault,
+            import("http").IncomingMessage,
+            import("http").ServerResponse<import("http").IncomingMessage>,
+            import("fastify").RouteGenericInterface,
+            unknown,
+            import("fastify").FastifySchema,
+            import("fastify").FastifyTypeProviderDefault,
+            unknown
+          >;
+          pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
+          user: {
+            id: number;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
+            createdAt: Date;
+            name: string | null;
+            avatarId: string | null;
+            minPayment: number;
+            nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
+          } | null;
+          completeUserProfile: {
+            id: number;
+            name: string;
+            avatarId: string;
+            nSwipes: number;
+            pubKeyStr: string;
+          } | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
+        };
+        meta: object;
+        errorShape: import("@trpc/server").DefaultErrorShape;
+        transformer: import("@trpc/server").DefaultDataTransformer;
+      }>,
+      {
+        getNewWorkPack: import("@trpc/server").BuildProcedure<
           "query",
           {
             _config: import("@trpc/server").RootConfig<{
@@ -757,11 +1001,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -770,7 +1017,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -781,13 +1030,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -827,12 +1081,12 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
           },
           {
             shareId: number;
+            retryTarget: string;
             shareTarget: string;
-            header: string;
-            lch10Ids: string[];
+            workPack: string;
           }
         >;
-        postHeader: import("@trpc/server").BuildProcedure<
+        postWorkPack: import("@trpc/server").BuildProcedure<
           "mutation",
           {
             _config: import("@trpc/server").RootConfig<{
@@ -864,11 +1118,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -877,7 +1134,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -888,13 +1147,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -928,21 +1192,31 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               } | null;
             };
             _input_in: {
-              header: string;
               count: number;
               duration: number;
+              workPack: string;
               shareId: number;
             };
             _input_out: {
-              header: import("@earthbucks/lib/dist/header.js").Header;
               count: number;
               duration: number;
+              workPack: import("@earthbucks/lib/dist/work-pack.js").WorkPack;
               shareId: number;
             };
-            _output_in: typeof import("@trpc/server").unsetMarker;
-            _output_out: typeof import("@trpc/server").unsetMarker;
+            _output_in: {
+              isValidShare: boolean;
+              isValidBlock: boolean;
+              shareId: number;
+              error?: string | undefined;
+            };
+            _output_out: {
+              isValidShare: boolean;
+              isValidBlock: boolean;
+              shareId: number;
+              error?: string | undefined;
+            };
           },
-          void
+          unknown
         >;
       }
     >;
@@ -976,11 +1250,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
           pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
           user: {
             id: number;
-            pubKey: Buffer;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
             createdAt: Date;
             name: string | null;
             avatarId: string | null;
+            minPayment: number;
             nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
           } | null;
           completeUserProfile: {
             id: number;
@@ -989,7 +1266,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
             nSwipes: number;
             pubKeyStr: string;
           } | null;
-          sessionTokenId: Buffer | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
         };
         meta: object;
         errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1028,11 +1307,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -1041,7 +1323,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1052,13 +1336,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -1130,11 +1419,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
           pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
           user: {
             id: number;
-            pubKey: Buffer;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
             createdAt: Date;
             name: string | null;
             avatarId: string | null;
+            minPayment: number;
             nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
           } | null;
           completeUserProfile: {
             id: number;
@@ -1143,7 +1435,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
             nSwipes: number;
             pubKeyStr: string;
           } | null;
-          sessionTokenId: Buffer | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
         };
         meta: object;
         errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1182,11 +1476,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -1195,7 +1492,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1206,13 +1505,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -1284,11 +1588,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -1297,7 +1604,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1308,13 +1617,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -1386,11 +1700,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
           pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
           user: {
             id: number;
-            pubKey: Buffer;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
             createdAt: Date;
             name: string | null;
             avatarId: string | null;
+            minPayment: number;
             nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
           } | null;
           completeUserProfile: {
             id: number;
@@ -1399,7 +1716,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
             nSwipes: number;
             pubKeyStr: string;
           } | null;
-          sessionTokenId: Buffer | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
         };
         meta: object;
         errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1438,11 +1757,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -1451,7 +1773,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1462,13 +1786,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -1540,11 +1869,14 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                 pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
                 user: {
                   id: number;
-                  pubKey: Buffer;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                   createdAt: Date;
                   name: string | null;
                   avatarId: string | null;
+                  minPayment: number;
                   nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
                 } | null;
                 completeUserProfile: {
                   id: number;
@@ -1553,7 +1885,9 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
                   nSwipes: number;
                   pubKeyStr: string;
                 } | null;
-                sessionTokenId: Buffer | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
               };
               meta: object;
               errorShape: import("@trpc/server").DefaultErrorShape;
@@ -1564,13 +1898,18 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
               pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
               user: {
                 id: number;
-                pubKey: Buffer;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
                 createdAt: Date;
                 name: string | null;
                 avatarId: string | null;
+                minPayment: number;
                 nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
               } | null;
-              sessionTokenId: Buffer | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
               res: import("fastify").FastifyReply<
                 import("fastify").RawServerDefault,
                 import("http").IncomingMessage,
@@ -1609,6 +1948,175 @@ export declare const appRouter: import("@trpc/server").CreateRouterInner<
             _output_out: typeof import("@trpc/server").unsetMarker;
           },
           Response | undefined
+        >;
+      }
+    >;
+    buttonConfig: import("@trpc/server").CreateRouterInner<
+      import("@trpc/server").RootConfig<{
+        ctx: {
+          req: import("fastify").FastifyRequest<
+            import("fastify").RouteGenericInterface,
+            import("fastify").RawServerDefault,
+            import("http").IncomingMessage,
+            import("fastify").FastifySchema,
+            import("fastify").FastifyTypeProviderDefault,
+            unknown,
+            import("fastify").FastifyBaseLogger,
+            import("fastify/types/type-provider.js").ResolveFastifyRequestType<
+              import("fastify").FastifyTypeProviderDefault,
+              import("fastify").FastifySchema,
+              import("fastify").RouteGenericInterface
+            >
+          >;
+          res: import("fastify").FastifyReply<
+            import("fastify").RawServerDefault,
+            import("http").IncomingMessage,
+            import("http").ServerResponse<import("http").IncomingMessage>,
+            import("fastify").RouteGenericInterface,
+            unknown,
+            import("fastify").FastifySchema,
+            import("fastify").FastifyTypeProviderDefault,
+            unknown
+          >;
+          pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
+          user: {
+            id: number;
+            pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
+            createdAt: Date;
+            name: string | null;
+            avatarId: string | null;
+            minPayment: number;
+            nSwipes: number;
+            nBlocks: number;
+            isBanned: boolean;
+          } | null;
+          completeUserProfile: {
+            id: number;
+            name: string;
+            avatarId: string;
+            nSwipes: number;
+            pubKeyStr: string;
+          } | null;
+          sessionTokenId:
+            | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+            | null;
+        };
+        meta: object;
+        errorShape: import("@trpc/server").DefaultErrorShape;
+        transformer: import("@trpc/server").DefaultDataTransformer;
+      }>,
+      {
+        setNButtons: import("@trpc/server").BuildProcedure<
+          "mutation",
+          {
+            _config: import("@trpc/server").RootConfig<{
+              ctx: {
+                req: import("fastify").FastifyRequest<
+                  import("fastify").RouteGenericInterface,
+                  import("fastify").RawServerDefault,
+                  import("http").IncomingMessage,
+                  import("fastify").FastifySchema,
+                  import("fastify").FastifyTypeProviderDefault,
+                  unknown,
+                  import("fastify").FastifyBaseLogger,
+                  import("fastify/types/type-provider.js").ResolveFastifyRequestType<
+                    import("fastify").FastifyTypeProviderDefault,
+                    import("fastify").FastifySchema,
+                    import("fastify").RouteGenericInterface
+                  >
+                >;
+                res: import("fastify").FastifyReply<
+                  import("fastify").RawServerDefault,
+                  import("http").IncomingMessage,
+                  import("http").ServerResponse<import("http").IncomingMessage>,
+                  import("fastify").RouteGenericInterface,
+                  unknown,
+                  import("fastify").FastifySchema,
+                  import("fastify").FastifyTypeProviderDefault,
+                  unknown
+                >;
+                pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
+                user: {
+                  id: number;
+                  pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
+                  createdAt: Date;
+                  name: string | null;
+                  avatarId: string | null;
+                  minPayment: number;
+                  nSwipes: number;
+                  nBlocks: number;
+                  isBanned: boolean;
+                } | null;
+                completeUserProfile: {
+                  id: number;
+                  name: string;
+                  avatarId: string;
+                  nSwipes: number;
+                  pubKeyStr: string;
+                } | null;
+                sessionTokenId:
+                  | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                  | null;
+              };
+              meta: object;
+              errorShape: import("@trpc/server").DefaultErrorShape;
+              transformer: import("@trpc/server").DefaultDataTransformer;
+            }>;
+            _meta: object;
+            _ctx_out: {
+              pubKey: import("@earthbucks/lib/dist/pub-key.js").PubKey | null;
+              user: {
+                id: number;
+                pubKey: import("@earthbucks/lib/dist/buf.js").FixedBuf<33>;
+                createdAt: Date;
+                name: string | null;
+                avatarId: string | null;
+                minPayment: number;
+                nSwipes: number;
+                nBlocks: number;
+                isBanned: boolean;
+              } | null;
+              sessionTokenId:
+                | import("@earthbucks/lib/dist/buf.js").FixedBuf<16>
+                | null;
+              res: import("fastify").FastifyReply<
+                import("fastify").RawServerDefault,
+                import("http").IncomingMessage,
+                import("http").ServerResponse<import("http").IncomingMessage>,
+                import("fastify").RouteGenericInterface,
+                unknown,
+                import("fastify").FastifySchema,
+                import("fastify").FastifyTypeProviderDefault,
+                unknown
+              >;
+              req: import("fastify").FastifyRequest<
+                import("fastify").RouteGenericInterface,
+                import("fastify").RawServerDefault,
+                import("http").IncomingMessage,
+                import("fastify").FastifySchema,
+                import("fastify").FastifyTypeProviderDefault,
+                unknown,
+                import("fastify").FastifyBaseLogger,
+                import("fastify/types/type-provider.js").ResolveFastifyRequestType<
+                  import("fastify").FastifyTypeProviderDefault,
+                  import("fastify").FastifySchema,
+                  import("fastify").RouteGenericInterface
+                >
+              >;
+              completeUserProfile: {
+                id: number;
+                name: string;
+                avatarId: string;
+                nSwipes: number;
+                pubKeyStr: string;
+              } | null;
+            };
+            _input_in: 1 | 2 | 3 | 4;
+            _input_out: 1 | 2 | 3 | 4;
+            _output_in: number;
+            _output_out: number;
+          },
+          unknown
         >;
       }
     >;

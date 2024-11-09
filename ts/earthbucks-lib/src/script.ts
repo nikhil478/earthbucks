@@ -1,13 +1,31 @@
 import { OP, Opcode } from "./opcode.js";
 import { ScriptChunk } from "./script-chunk.js";
 import { BufReader } from "./buf-reader.js";
-import { SysBuf } from "./buf.js";
+import { FixedBuf, WebBuf } from "./buf.js";
 import { ScriptNum } from "./script-num.js";
 import { TxSignature } from "./tx-signature.js";
 import { PubKey } from "./pub-key.js";
-import { EbxError } from "./error.js";
 import { U8, U16, U32 } from "./numbers.js";
-import type { Pkh } from "./pkh.js";
+import { Pkh } from "./pkh.js";
+
+export type ScriptTemplateType =
+  | "mint-input"
+  | "pkh-output"
+  | "pkh-input"
+  | "pkhx90d-output"
+  | "pkhx90d-unexpired-input"
+  | "pkhx90d-expired-input"
+  | "pkhx1h-output"
+  | "pkhx1h-unexpired-input"
+  | "pkhx1h-expired-input"
+  | "pkhxr90d60d-output"
+  | "pkhxr90d60d-unexpired-input"
+  | "pkhxr90d60d-recovery-input"
+  | "pkhxr90d60d-expired-input"
+  | "pkhxr1h40m-output"
+  | "pkhxr1h40m-unexpired-input"
+  | "pkhxr1h40m-recovery-input"
+  | "pkhxr1h40m-expired-input";
 
 export class Script {
   chunks: ScriptChunk[] = [];
@@ -18,6 +36,10 @@ export class Script {
 
   toString(): string {
     return this.chunks.map((chunk) => chunk.toString()).join(" ");
+  }
+
+  static fromPushOnly(datas: WebBuf[]): Script {
+    return new Script(datas.map(ScriptChunk.fromData));
   }
 
   static fromEmpty(): Script {
@@ -35,12 +57,12 @@ export class Script {
     return script;
   }
 
-  toBuf(): SysBuf {
+  toBuf(): WebBuf {
     const bufArray = this.chunks.map((chunk) => chunk.toBuf());
-    return SysBuf.concat(bufArray);
+    return WebBuf.concat(bufArray);
   }
 
-  static fromBuf(arr: SysBuf): Script {
+  static fromBuf(arr: WebBuf): Script {
     const reader = new BufReader(arr);
     return Script.fromBufReader(reader);
   }
@@ -54,7 +76,7 @@ export class Script {
     return script;
   }
 
-  static fromMultiSigOutput(m: number, pubKeys: SysBuf[]): Script {
+  static fromMultiSigOutput(m: number, pubKeys: WebBuf[]): Script {
     return new Script([
       ScriptChunk.fromSmallNumber(m),
       ...pubKeys.map(ScriptChunk.fromData),
@@ -63,7 +85,7 @@ export class Script {
     ]);
   }
 
-  static fromMultiSigInput(sigBufs: SysBuf[]): Script {
+  static fromMultiSigInput(sigBufs: WebBuf[]): Script {
     return new Script(sigBufs.map(ScriptChunk.fromData));
   }
 
@@ -89,7 +111,7 @@ export class Script {
     );
   }
 
-  static fromPkhInput(sigBuf: SysBuf, pubKeyBuf: SysBuf): Script {
+  static fromPkhInput(sigBuf: WebBuf, pubKeyBuf: WebBuf): Script {
     return new Script([
       ScriptChunk.fromData(sigBuf),
       ScriptChunk.fromData(pubKeyBuf),
@@ -107,8 +129,8 @@ export class Script {
   }
 
   static fromPkhInputPlaceholder(): Script {
-    const sig = SysBuf.alloc(TxSignature.SIZE);
-    const pubKey = SysBuf.alloc(PubKey.SIZE);
+    const sig = WebBuf.alloc(TxSignature.SIZE);
+    const pubKey = WebBuf.alloc(PubKey.SIZE);
     return new Script([
       ScriptChunk.fromData(sig),
       ScriptChunk.fromData(pubKey),
@@ -119,12 +141,12 @@ export class Script {
   // 13104 blocks = 2016 blocks / 14 * 90
   static readonly PKHX_90D_LOCK_REL: U32 = new U32(12960);
 
-  static fromPkhx90dOutput(pkh: SysBuf): Script {
+  static fromPkhx90dOutput(pkh: Pkh): Script {
     return new Script([
       new ScriptChunk(Opcode.OP_IF),
       new ScriptChunk(Opcode.OP_DUP),
       new ScriptChunk(Opcode.OP_DOUBLEBLAKE3),
-      ScriptChunk.fromData(pkh),
+      ScriptChunk.fromData(pkh.toBuf().buf),
       new ScriptChunk(Opcode.OP_EQUALVERIFY),
       new ScriptChunk(Opcode.OP_CHECKSIG),
       new ScriptChunk(Opcode.OP_ELSE),
@@ -169,12 +191,12 @@ export class Script {
   static readonly PKHXR_90D_60D_X_LOCK_REL: U32 = new U32(12960);
   static readonly PKHXR_90D_60D_R_LOCK_REL: U32 = new U32(8640);
 
-  static fromPkhxr90d60dOutput(pkh: SysBuf, rpkh: SysBuf): Script {
+  static fromPkhxr90d60dOutput(pkh: Pkh, rpkh: Pkh): Script {
     return new Script([
       new ScriptChunk(Opcode.OP_IF),
       new ScriptChunk(Opcode.OP_DUP),
       new ScriptChunk(Opcode.OP_DOUBLEBLAKE3),
-      ScriptChunk.fromData(pkh),
+      ScriptChunk.fromData(pkh.toBuf().buf),
       new ScriptChunk(Opcode.OP_EQUALVERIFY),
       new ScriptChunk(Opcode.OP_CHECKSIG),
       new ScriptChunk(Opcode.OP_ELSE),
@@ -186,7 +208,7 @@ export class Script {
       new ScriptChunk(Opcode.OP_DROP),
       new ScriptChunk(Opcode.OP_DUP),
       new ScriptChunk(Opcode.OP_DOUBLEBLAKE3),
-      ScriptChunk.fromData(rpkh),
+      ScriptChunk.fromData(rpkh.toBuf().buf),
       new ScriptChunk(Opcode.OP_EQUALVERIFY),
       new ScriptChunk(Opcode.OP_CHECKSIG),
       new ScriptChunk(Opcode.OP_ELSE),
@@ -257,12 +279,12 @@ export class Script {
   // 6 blocks = 1 hour for 10 min blocks
   static readonly PKHX_1H_LOCK_REL: U32 = new U32(6);
 
-  static fromPkhx1hOutput(pkh: SysBuf): Script {
+  static fromPkhx1hOutput(pkh: Pkh): Script {
     return new Script([
       new ScriptChunk(Opcode.OP_IF),
       new ScriptChunk(Opcode.OP_DUP),
       new ScriptChunk(Opcode.OP_DOUBLEBLAKE3),
-      ScriptChunk.fromData(pkh),
+      ScriptChunk.fromData(pkh.toBuf().buf),
       new ScriptChunk(Opcode.OP_EQUALVERIFY),
       new ScriptChunk(Opcode.OP_CHECKSIG),
       new ScriptChunk(Opcode.OP_ELSE),
@@ -303,12 +325,12 @@ export class Script {
   static readonly PKHXR_1H_40M_X_LOCK_REL: U32 = new U32(6);
   static readonly PKHXR_1H_40M_R_LOCK_REL: U32 = new U32(4);
 
-  static fromPkhxr1h40mOutput(pkh: SysBuf, rpkh: SysBuf): Script {
+  static fromPkhxr1h40mOutput(pkh: Pkh, rpkh: Pkh): Script {
     return new Script([
       new ScriptChunk(Opcode.OP_IF),
       new ScriptChunk(Opcode.OP_DUP),
       new ScriptChunk(Opcode.OP_DOUBLEBLAKE3),
-      ScriptChunk.fromData(pkh),
+      ScriptChunk.fromData(pkh.toBuf().buf),
       new ScriptChunk(Opcode.OP_EQUALVERIFY),
       new ScriptChunk(Opcode.OP_CHECKSIG),
       new ScriptChunk(Opcode.OP_ELSE),
@@ -318,7 +340,7 @@ export class Script {
       new ScriptChunk(Opcode.OP_DROP),
       new ScriptChunk(Opcode.OP_DUP),
       new ScriptChunk(Opcode.OP_DOUBLEBLAKE3),
-      ScriptChunk.fromData(rpkh),
+      ScriptChunk.fromData(rpkh.toBuf().buf),
       new ScriptChunk(Opcode.OP_EQUALVERIFY),
       new ScriptChunk(Opcode.OP_CHECKSIG),
       new ScriptChunk(Opcode.OP_ELSE),
@@ -382,7 +404,7 @@ export class Script {
     return this.chunks.length === 1 && this.chunks[0]?.opcode === Opcode.OP_0;
   }
 
-  static fromUnexpiredPkhxInput(sigBuf: SysBuf, pubKeyBuf: SysBuf): Script {
+  static fromUnexpiredPkhxInput(sigBuf: WebBuf, pubKeyBuf: WebBuf): Script {
     return new Script([
       ScriptChunk.fromData(sigBuf),
       ScriptChunk.fromData(pubKeyBuf),
@@ -416,7 +438,7 @@ export class Script {
     );
   }
 
-  static fromRecoveryPkhxrInput(sigBuf: SysBuf, pubKeyBuf: SysBuf): Script {
+  static fromRecoveryPkhxrInput(sigBuf: WebBuf, pubKeyBuf: WebBuf): Script {
     return new Script([
       ScriptChunk.fromData(sigBuf),
       ScriptChunk.fromData(pubKeyBuf),
@@ -426,8 +448,8 @@ export class Script {
   }
 
   static fromRecoveryPkhxrInputPlaceholder(): Script {
-    const sig = SysBuf.alloc(TxSignature.SIZE);
-    const pubKey = SysBuf.alloc(PubKey.SIZE);
+    const sig = WebBuf.alloc(TxSignature.SIZE);
+    const pubKey = WebBuf.alloc(PubKey.SIZE);
     return Script.fromRecoveryPkhxrInput(sig, pubKey);
   }
 
@@ -444,12 +466,12 @@ export class Script {
   }
 
   static fromUnexpiredPkhxInputPlaceholder(): Script {
-    const sig = SysBuf.alloc(TxSignature.SIZE);
-    const pubKey = SysBuf.alloc(PubKey.SIZE);
+    const sig = WebBuf.alloc(TxSignature.SIZE);
+    const pubKey = WebBuf.alloc(PubKey.SIZE);
     return Script.fromUnexpiredPkhxInput(sig, pubKey);
   }
 
-  static fromUnexpiredPkhxrInput(sigBuf: SysBuf, pubKeyBuf: SysBuf): Script {
+  static fromUnexpiredPkhxrInput(sigBuf: WebBuf, pubKeyBuf: WebBuf): Script {
     return new Script([
       ScriptChunk.fromData(sigBuf),
       ScriptChunk.fromData(pubKeyBuf),
@@ -469,8 +491,8 @@ export class Script {
   }
 
   static fromUnexpiredPkhxrInputPlaceholder(): Script {
-    const sig = SysBuf.alloc(TxSignature.SIZE);
-    const pubKey = SysBuf.alloc(PubKey.SIZE);
+    const sig = WebBuf.alloc(TxSignature.SIZE);
+    const pubKey = WebBuf.alloc(PubKey.SIZE);
     return Script.fromUnexpiredPkhxrInput(sig, pubKey);
   }
 
@@ -480,17 +502,85 @@ export class Script {
 
   isMintTxInput(): boolean {
     // TODO: Add more checks
-    return this.isPushOnly();
+    return this.isPushOnly() && this.chunks.length >= 3;
+  }
+
+  getMintTxData(): {
+    nonce: FixedBuf<32>;
+    blockMessageId: FixedBuf<32>;
+    domain: string;
+  } {
+    if (!this.isMintTxInput()) {
+      throw new Error("Not a mint tx");
+    }
+    const nonce = FixedBuf.fromBuf(
+      32,
+      this.chunks[this.chunks.length - 3]?.getData() as WebBuf,
+    );
+    const blockMessageId = FixedBuf.fromBuf(
+      32,
+      this.chunks[this.chunks.length - 2]?.getData() as WebBuf,
+    );
+    const domain = this.chunks[this.chunks.length - 1]
+      ?.getData()
+      ?.toString("utf8") as string;
+    return { nonce, blockMessageId, domain };
+  }
+
+  isExpiredInput(): boolean {
+    return this.isExpiredPkhxInput() || this.isExpiredPkhxrInput();
   }
 
   isStandardInput(): boolean {
     return (
       this.isPushOnly() &&
-      (this.isUnexpiredPkhxInput() || this.isExpiredPkhxInput())
+      (this.isUnexpiredPkhxrInput() || this.isRecoveryPkhxrInput())
     );
   }
 
   isStandardOutput(): boolean {
-    return this.isPkhx90dOutput() || this.isPkhx1hOutput();
+    return this.isPkhxr1h40mOutput() || this.isPkhxr90d60dOutput();
+  }
+
+  getPkhs(): { pkh: Pkh; rpkh: Pkh | null } {
+    if (this.isPkhxr90d60dOutput() || this.isPkhxr1h40mOutput()) {
+      return {
+        pkh: Pkh.fromBuf(FixedBuf.fromBuf(32, this.chunks[3]?.buf as WebBuf)),
+        rpkh: Pkh.fromBuf(FixedBuf.fromBuf(32, this.chunks[13]?.buf as WebBuf)),
+      };
+    }
+    if (this.isPkhx90dOutput() || this.isPkhx1hOutput()) {
+      return {
+        pkh: Pkh.fromBuf(FixedBuf.fromBuf(32, this.chunks[3]?.buf as WebBuf)),
+        rpkh: null,
+      };
+    }
+    if (this.isPkhOutput()) {
+      return {
+        pkh: Pkh.fromBuf(FixedBuf.fromBuf(32, this.chunks[2]?.buf as WebBuf)),
+        rpkh: null,
+      };
+    }
+    throw new Error("Invalid Script");
+  }
+
+  getOutputTemplateType(): ScriptTemplateType {
+    if (this.isPkhx90dOutput()) {
+      return "pkhx90d-output";
+    }
+    if (this.isPkhx1hOutput()) {
+      return "pkhx1h-output";
+    }
+    if (this.isPkhxr90d60dOutput()) {
+      return "pkhxr90d60d-output";
+    }
+    if (this.isPkhxr1h40mOutput()) {
+      return "pkhxr1h40m-output";
+    }
+    throw new Error("Invalid Script");
+  }
+
+  clone(): Script {
+    return new Script(this.chunks.map((chunk) => chunk.clone()));
   }
 }

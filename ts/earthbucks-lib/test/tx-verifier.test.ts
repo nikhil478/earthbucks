@@ -8,10 +8,11 @@ import { Pkh } from "../src/pkh.js";
 import { PkhKeyMap } from "../src/pkh-key-map.js";
 import { TxSigner } from "../src/tx-signer.js";
 import { TxVerifier } from "../src/tx-verifier.js";
-import { SysBuf, FixedBuf } from "../src/buf.js";
+import { WebBuf, FixedBuf } from "../src/buf.js";
 import { TxOutBn } from "../src/tx-out-bn.js";
 import { TxIn } from "../src/tx-in.js";
 import { U8, U16, U32, U64 } from "../src/numbers.js";
+import { isOk } from "../src/result.js";
 
 describe("TxVerifier", () => {
   let txBuilder: TxBuilder;
@@ -27,7 +28,7 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
         const script = Script.fromPkhOutput(pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
@@ -53,16 +54,16 @@ describe("TxVerifier", () => {
       expect(signed).toBeTruthy();
 
       const txVerifier = new TxVerifier(tx, txOutBnMap, new U32(0n));
-      const verifiedInput = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInput = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInput).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
 
@@ -85,18 +86,18 @@ describe("TxVerifier", () => {
       expect(signed2).toBeTruthy();
 
       const txVerifier = new TxVerifier(tx, txOutBnMap, new U32(0n));
-      const verifiedInput1 = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInput1 = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInput1).toBe(true);
-      const verifiedInput2 = txVerifier.verifyInputScript(new U32(1));
+      const verifiedInput2 = isOk(txVerifier.evalInputScript(new U32(1)));
       expect(verifiedInput2).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -109,8 +110,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhx1hOutput(pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhx1hOutput(pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -137,19 +138,21 @@ describe("TxVerifier", () => {
       expect(tx.inputs[0]?.script.isUnexpiredPkhxInput()).toBe(true);
 
       const txVerifier = new TxVerifier(tx, txOutBnMap, new U32(0n));
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -162,8 +165,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhx1hOutput(pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhx1hOutput(pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -208,19 +211,21 @@ describe("TxVerifier", () => {
         txOutBnMap,
         new U32(Script.PKHX_1H_LOCK_REL.bn),
       );
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -233,8 +238,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhx90dOutput(pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhx90dOutput(pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -261,19 +266,21 @@ describe("TxVerifier", () => {
       expect(tx.inputs[0]?.script.isUnexpiredPkhxInput()).toBe(true);
 
       const txVerifier = new TxVerifier(tx, txOutBnMap, new U32(0n));
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -286,8 +293,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhx90dOutput(pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhx90dOutput(pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -332,19 +339,21 @@ describe("TxVerifier", () => {
         txOutBnMap,
         new U32(Script.PKHX_90D_LOCK_REL.bn),
       );
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -357,8 +366,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhxr1h40mOutput(pkh.buf.buf, pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhxr1h40mOutput(pkh, pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -385,19 +394,21 @@ describe("TxVerifier", () => {
       expect(tx.inputs[0]?.script.isUnexpiredPkhxInput()).toBe(true);
 
       const txVerifier = new TxVerifier(tx, txOutBnMap, new U32(0n));
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -410,10 +421,10 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
         const script = Script.fromPkhxr1h40mOutput(
-          FixedBuf.alloc(32).buf,
-          pkh.buf.buf,
+          Pkh.fromBuf(FixedBuf.alloc(32)),
+          pkh,
         );
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
@@ -459,19 +470,21 @@ describe("TxVerifier", () => {
         txOutBnMap,
         new U32(Script.PKHXR_1H_40M_R_LOCK_REL.bn),
       );
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -484,8 +497,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhxr1h40mOutput(pkh.buf.buf, pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhxr1h40mOutput(pkh, pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -530,19 +543,21 @@ describe("TxVerifier", () => {
         txOutBnMap,
         new U32(Script.PKHXR_1H_40M_X_LOCK_REL.bn),
       );
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -555,8 +570,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhxr90d60dOutput(pkh.buf.buf, pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhxr90d60dOutput(pkh, pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -583,19 +598,21 @@ describe("TxVerifier", () => {
       expect(tx.inputs[0]?.script.isUnexpiredPkhxInput()).toBe(true);
 
       const txVerifier = new TxVerifier(tx, txOutBnMap, new U32(0n));
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -608,10 +625,10 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
         const script = Script.fromPkhxr90d60dOutput(
-          FixedBuf.alloc(32).buf,
-          pkh.buf.buf,
+          Pkh.fromBuf(FixedBuf.alloc(32)),
+          pkh,
         );
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
@@ -657,19 +674,21 @@ describe("TxVerifier", () => {
         txOutBnMap,
         new U32(Script.PKHXR_90D_60D_R_LOCK_REL.bn),
       );
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });
@@ -682,8 +701,8 @@ describe("TxVerifier", () => {
       for (let i = 0; i < 5; i++) {
         const key = KeyPair.fromRandom();
         const pkh = Pkh.fromPubKeyBuf(key.pubKey.toBuf());
-        pkhKeyMap.add(key, pkh.buf.buf);
-        const script = Script.fromPkhxr90d60dOutput(pkh.buf.buf, pkh.buf.buf);
+        pkhKeyMap.add(key, pkh);
+        const script = Script.fromPkhxr90d60dOutput(pkh, pkh);
         const txOut = new TxOut(new U64(100), script);
         const txOutBn = new TxOutBn(txOut, new U32(0n));
         txOutBnMap.add(txOutBn, FixedBuf.alloc(32), new U32(i));
@@ -728,19 +747,21 @@ describe("TxVerifier", () => {
         txOutBnMap,
         new U32(Script.PKHXR_90D_60D_X_LOCK_REL.bn),
       );
-      const verifiedInputScript = txVerifier.verifyInputScript(new U32(0));
+      const verifiedInputScript = isOk(txVerifier.evalInputScript(new U32(0)));
       expect(verifiedInputScript).toBe(true);
 
-      const verifiedInputLockRel = txVerifier.verifyInputLockRel(new U32(0));
+      const verifiedInputLockRel = isOk(
+        txVerifier.verifyInputLockRel(new U32(0)),
+      );
       expect(verifiedInputLockRel).toBe(true);
 
-      const verifiedScripts = txVerifier.verifyInputs();
+      const verifiedScripts = isOk(txVerifier.verifyInputs());
       expect(verifiedScripts).toBe(true);
 
-      const verifiedOutputValues = txVerifier.verifyOutputValues();
+      const verifiedOutputValues = isOk(txVerifier.verifyOutputValues());
       expect(verifiedOutputValues).toBe(true);
 
-      const verified = txVerifier.verify();
+      const verified = isOk(txVerifier.verifyTx());
       expect(verified).toBe(true);
     });
   });

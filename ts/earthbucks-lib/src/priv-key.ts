@@ -1,14 +1,10 @@
-import secp256k1 from "secp256k1";
-import { SysBuf, FixedBuf } from "./buf.js";
-import { Hash } from "./hash.js";
 import {
-  EbxError,
-  InvalidChecksumError,
-  InvalidEncodingError,
-  InvalidKeyError,
-  NotEnoughDataError,
-  TooMuchDataError,
-} from "./error.js";
+  private_key_verify,
+  public_key_create,
+  private_key_add,
+} from "@earthbucks/secp256k1";
+import { WebBuf, FixedBuf } from "./buf.js";
+import { Hash } from "./hash.js";
 
 export class PrivKey {
   buf: FixedBuf<32>;
@@ -21,7 +17,7 @@ export class PrivKey {
     let privKeyBuf: FixedBuf<32>;
     do {
       privKeyBuf = FixedBuf.fromRandom(32);
-    } while (!secp256k1.privateKeyVerify(privKeyBuf.buf));
+    } while (!private_key_verify(privKeyBuf.buf));
     return new PrivKey(privKeyBuf);
   }
 
@@ -30,10 +26,7 @@ export class PrivKey {
   }
 
   toPubKeyEbxBuf(): FixedBuf<33> {
-    return FixedBuf.fromBuf(
-      33,
-      SysBuf.from(secp256k1.publicKeyCreate(this.buf.buf)),
-    );
+    return FixedBuf.fromBuf(33, WebBuf.from(public_key_create(this.buf.buf)));
   }
 
   toPubKeyHex(): string {
@@ -41,8 +34,8 @@ export class PrivKey {
   }
 
   static fromBuf(buf: FixedBuf<32>): PrivKey {
-    if (!secp256k1.privateKeyVerify(buf.buf)) {
-      throw new InvalidEncodingError();
+    if (!private_key_verify(buf.buf)) {
+      throw new Error("invalid encoding");
     }
     return new PrivKey(buf);
   }
@@ -59,14 +52,14 @@ export class PrivKey {
 
   toString(): string {
     const hashBuf = Hash.blake3Hash(this.buf.buf);
-    const checkBuf = SysBuf.from(hashBuf.buf).subarray(0, 4);
+    const checkBuf = WebBuf.from(hashBuf.buf).subarray(0, 4);
     const checkHex = checkBuf.toString("hex");
     return `ebxprv${checkHex}${this.buf.toBase58()}`;
   }
 
   static fromString(str: string): PrivKey {
     if (!str.startsWith("ebxprv")) {
-      throw new InvalidEncodingError();
+      throw new Error("invalid encoding");
     }
     const hexStr = str.slice(6, 14);
     const checkBuf = FixedBuf.fromHex(4, hexStr);
@@ -74,7 +67,7 @@ export class PrivKey {
     const hashBuf = Hash.blake3Hash(decoded32.buf);
     const checkHash = hashBuf.buf.subarray(0, 4);
     if (checkBuf.buf.toString("hex") !== checkHash.toString("hex")) {
-      throw new InvalidChecksumError();
+      throw new Error("invalid checksum");
     }
     return PrivKey.fromBuf(decoded32);
   }
@@ -89,11 +82,11 @@ export class PrivKey {
   }
 
   add(privKey: PrivKey): PrivKey {
-    const arr = secp256k1.privateKeyTweakAdd(
-      SysBuf.from(this.buf.buf),
-      SysBuf.from(privKey.buf.buf),
+    const arr = private_key_add(
+      WebBuf.from(this.buf.buf),
+      WebBuf.from(privKey.buf.buf),
     );
-    const buf = FixedBuf.fromBuf(32, SysBuf.from(arr));
+    const buf = FixedBuf.fromBuf(32, WebBuf.from(arr));
     return PrivKey.fromBuf(buf);
   }
 }

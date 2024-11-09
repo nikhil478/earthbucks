@@ -4,13 +4,14 @@ import { VarInt } from "./var-int.js";
 import { BufReader } from "./buf-reader.js";
 import { BufWriter } from "./buf-writer.js";
 import { Hash } from "./hash.js";
-import secp256k1 from "secp256k1";
-const { ecdsaSign, ecdsaVerify } = secp256k1;
+import { ecdsab3Sign, ecdsab3Verify } from "./ecdsab3.js";
 import { TxSignature } from "./tx-signature.js";
-import type { Script } from "./script.js";
-import { SysBuf, FixedBuf } from "./buf.js";
-import { EbxError, GenericError } from "./error.js";
+import { Script } from "./script.js";
+import { WebBuf, FixedBuf } from "./buf.js";
 import { U8, U16, U32, U64 } from "./numbers.js";
+import { Pkh } from "./pkh.js";
+import { PrivKey } from "./priv-key.js";
+import { PubKey } from "./pub-key.js";
 
 export class HashCache {
   public hashPrevouts?: FixedBuf<32>;
@@ -31,7 +32,7 @@ export class Tx {
     this.lockAbs = lockAbs;
   }
 
-  static fromBuf(buf: SysBuf): Tx {
+  static fromBuf(buf: WebBuf): Tx {
     return Tx.fromBufReader(new BufReader(buf));
   }
 
@@ -53,7 +54,7 @@ export class Tx {
     return new Tx(version, inputs, outputs, lockNum);
   }
 
-  toBuf(): SysBuf {
+  toBuf(): WebBuf {
     const writer = new BufWriter();
     writer.writeU8(this.version);
     writer.write(VarInt.fromU32(new U32(this.inputs.length)).toBuf());
@@ -77,27 +78,99 @@ export class Tx {
     return Tx.fromBuf(buf.buf);
   }
 
-  static fromMintTxOutputScript(
-    inputScript: Script,
-    outputScript: Script,
-    outputAmount: U64,
-  ): Tx {
+  static fromMintTxData({
+    blockMessageId,
+    domain,
+    outputScript,
+    outputAmount,
+    blockNum,
+    nonce = FixedBuf.fromRandom(32),
+  }: {
+    blockMessageId: FixedBuf<32>;
+    domain: string;
+    outputScript: Script;
+    outputAmount: U64;
+    blockNum: U32;
+    nonce?: FixedBuf<32>;
+  }): Tx {
+    // TODO: DO NOT also allow inputting expired txs: expired txs should
+    // actually be the first tx of the new block.
     const version = new U8(0);
-    const inputs = [TxIn.fromMintTx(inputScript)];
+    const inputs = [TxIn.fromMintTxData(blockMessageId, domain, nonce)];
     const txOuts = [new TxOut(outputAmount, outputScript)];
-    const lockNum = new U32(0);
+    const lockNum = blockNum;
     return new Tx(version, inputs, txOuts, lockNum);
   }
 
-  static fromMintTxTxOuts(inputScript: Script, txOuts: TxOut[]): Tx {
+  static fromMintTxScripts(
+    inputScript: Script,
+    outputScript: Script,
+    outputAmount: U64,
+    blockNum: U32,
+  ): Tx {
+    // TODO: DO NOT also allow inputting expired txs: expired txs should
+    // actually be the first tx of the new block.
     const version = new U8(0);
-    const txIns = [TxIn.fromMintTx(inputScript)];
-    const lockNum = new U32(0);
+    const inputs = [TxIn.fromMintTxScript(inputScript)];
+    const txOuts = [new TxOut(outputAmount, outputScript)];
+    const lockNum = blockNum;
+    return new Tx(version, inputs, txOuts, lockNum);
+  }
+
+  static fromMintTxTxOuts(
+    inputScript: Script,
+    txOuts: TxOut[],
+    blockNum: U32,
+  ): Tx {
+    // TODO: DO NOT also allow inputting expired txs: expired txs should
+    // actually be the first tx of the new block.
+    const version = new U8(0);
+    const txIns = [TxIn.fromMintTxScript(inputScript)];
+    const lockNum = blockNum;
     return new Tx(version, txIns, txOuts, lockNum);
   }
 
+  /**
+   * A mint transaction is a special transaction at the end of every block that
+   * has one "new" input that creates new earthbucks. All other inputs, if they
+   * exist, must be "expired", meaning they are spending expired outputs. Normal
+   * inputs are not allowed in a mint transaction. Other transaction types
+   * cannot have either "new" or "expired" inputs.
+   * @returns Whether this transaction is a mint transaction.
+   */
   isMintTx(): boolean {
-    return this.inputs.length === 1 && this.inputs[0]?.isMintTx() === true;
+    if (this.inputs.length < 1) {
+      return false;
+    }
+    if (!(this.inputs[0] as TxIn).isMintTx()) {
+      return false;
+    }
+    for (let i = 1; i < this.inputs.length; i++) {
+      if (!(this.inputs[i] as TxIn).isExpiredInputScript()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  isStandardTx(): boolean {
+    if (this.inputs.length < 1) {
+      return false;
+    }
+    for (let i = 0; i < this.inputs.length; i++) {
+      if (!(this.inputs[i] as TxIn).isStandardInputScript()) {
+        return false;
+      }
+    }
+    if (this.outputs.length < 1) {
+      return false;
+    }
+    for (let i = 0; i < this.outputs.length; i++) {
+      if (!(this.outputs[i] as TxOut).isStandardOutputScript()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   blake3Hash(): FixedBuf<32> {
@@ -135,13 +208,13 @@ export class Tx {
 
   sighashPreimage(
     inputIndex: U32,
-    script: SysBuf,
+    script: WebBuf,
     amount: U64,
     hashType: U8,
     hashCache: HashCache,
-  ): SysBuf {
+  ): WebBuf {
     if (inputIndex.n >= this.inputs.length) {
-      throw new GenericError("input index out of bounds");
+      throw new Error("input index out of bounds");
     }
     const SIGHASH_ANYONECANPAY = 0x80;
     const SIGHASH_SINGLE = 0x03;
@@ -204,10 +277,10 @@ export class Tx {
 
   sighashNoCache(
     inputIndex: U32,
-    script: SysBuf,
+    script: WebBuf,
     amount: U64,
     hashType: U8,
-  ): SysBuf {
+  ): FixedBuf<32> {
     const hashCache = new HashCache();
     const preimage = this.sighashPreimage(
       inputIndex,
@@ -217,16 +290,16 @@ export class Tx {
       hashCache,
     );
     const hash = Hash.doubleBlake3Hash(preimage);
-    return hash.buf;
+    return hash;
   }
 
   sighashWithCache(
     inputIndex: U32,
-    script: SysBuf,
+    script: WebBuf,
     amount: U64,
     hashType: U8,
     hashCache: HashCache,
-  ): SysBuf {
+  ): FixedBuf<32> {
     const preimage = this.sighashPreimage(
       inputIndex,
       script,
@@ -235,29 +308,26 @@ export class Tx {
       hashCache,
     );
     const hash = Hash.doubleBlake3Hash(preimage);
-    return hash.buf;
+    return hash;
   }
 
   signNoCache(
     inputIndex: U32,
-    privateKey: SysBuf,
-    script: SysBuf,
+    privKey: PrivKey,
+    script: WebBuf,
     amount: U64,
     hashType: U8,
   ): TxSignature {
     const hash = this.sighashNoCache(inputIndex, script, amount, hashType);
-    const sigBuf = FixedBuf.fromBuf(
-      64,
-      SysBuf.from(ecdsaSign(hash, privateKey).signature),
-    );
+    const sigBuf = ecdsab3Sign(hash, privKey);
     const sig = new TxSignature(hashType, sigBuf);
     return sig;
   }
 
   signWithCache(
     inputIndex: U32,
-    privateKey: SysBuf,
-    script: SysBuf,
+    privKey: PrivKey,
+    script: WebBuf,
     amount: U64,
     hashType: U8,
     hashCache: HashCache,
@@ -269,31 +339,32 @@ export class Tx {
       hashType,
       hashCache,
     );
-    const sigBuf = FixedBuf.fromBuf(
-      64,
-      SysBuf.from(ecdsaSign(hash, privateKey).signature),
-    );
+    const sigBuf = ecdsab3Sign(hash, privKey);
     const sig = new TxSignature(hashType, sigBuf);
     return sig;
   }
 
   verifyNoCache(
     inputIndex: U32,
-    publicKey: SysBuf,
+    publicKey: WebBuf,
     sig: TxSignature,
-    script: SysBuf,
+    script: WebBuf,
     amount: U64,
   ): boolean {
     const hashType = sig.hashType;
     const hash = this.sighashNoCache(inputIndex, script, amount, hashType);
-    return ecdsaVerify(sig.sigBuf.buf, hash, publicKey);
+    return ecdsab3Verify(
+      sig.sigBuf,
+      hash,
+      PubKey.fromBuf(FixedBuf.fromBuf(33, publicKey)),
+    );
   }
 
   verifyWithCache(
     inputIndex: U32,
-    publicKey: SysBuf,
+    publicKey: WebBuf,
     sig: TxSignature,
-    script: SysBuf,
+    script: WebBuf,
     amount: U64,
     hashCache: HashCache,
   ): boolean {
@@ -305,6 +376,41 @@ export class Tx {
       hashType,
       hashCache,
     );
-    return ecdsaVerify(sig.sigBuf.buf, hash, publicKey);
+    return ecdsab3Verify(
+      sig.sigBuf,
+      hash,
+      PubKey.fromBuf(FixedBuf.fromBuf(33, publicKey)),
+    );
+  }
+
+  /**
+   * In order to know if your key is in a tx, you can use this method to get all
+   * keys (pub key hash, or Pkh) in the outputs. This gets both normal pkh and
+   * recovery pkh.
+   * @returns The public key hashes of all the keys in all the outputs in this
+   * transaction.
+   */
+  getAllOutputPkhs(): Pkh[] {
+    const txOuts = this.outputs;
+    const pkhs: Pkh[] = [];
+    for (const txOut of txOuts) {
+      const pkhObj = txOut.script.getPkhs();
+      pkhs.push(pkhObj.pkh);
+      if (pkhObj.rpkh) {
+        pkhs.push(pkhObj.rpkh);
+      }
+    }
+    return pkhs;
+  }
+
+  clone(): Tx {
+    const inputs = this.inputs.map((input) => input.clone());
+    const outputs = this.outputs.map((output) => output.clone());
+    return new Tx(
+      new U8(this.version.n),
+      inputs,
+      outputs,
+      new U32(this.lockAbs.n),
+    );
   }
 }

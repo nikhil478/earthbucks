@@ -2,39 +2,32 @@ import { OPCODE_TO_NAME, OP, Opcode } from "./opcode.js";
 import type { OpcodeName } from "./opcode.js";
 import { BufWriter } from "./buf-writer.js";
 import { BufReader } from "./buf-reader.js";
-import { SysBuf } from "./buf.js";
-import {
-  EbxError,
-  InvalidOpcodeError,
-  NonMinimalEncodingError,
-  NotEnoughDataError,
-  TooMuchDataError,
-} from "./error.js";
+import { WebBuf } from "./buf.js";
 import { U8, U16, U32, U64 } from "./numbers.js";
 
 export class ScriptChunk {
   opcode: number;
-  buf?: SysBuf;
+  buf?: WebBuf;
 
-  constructor(opcode = 0, buf?: SysBuf) {
+  constructor(opcode = 0, buf?: WebBuf) {
     this.opcode = opcode;
     this.buf = buf;
   }
 
-  getData(): SysBuf {
+  getData(): WebBuf {
     if (this.opcode === Opcode.OP_1NEGATE) {
-      return SysBuf.from([0x80]);
+      return WebBuf.from([0x80]);
     }
     if (this.opcode === Opcode.OP_0) {
-      return SysBuf.from([]);
+      return WebBuf.from([]);
     }
     if (this.opcode >= Opcode.OP_1 && this.opcode <= Opcode.OP_16) {
-      return SysBuf.from([this.opcode - Opcode.OP_1 + 1]);
+      return WebBuf.from([this.opcode - Opcode.OP_1 + 1]);
     }
     if (this.buf) {
       return this.buf;
     }
-    throw new NotEnoughDataError();
+    throw new Error("not enough bytes in the buffer to read");
   }
 
   toString(): string {
@@ -45,13 +38,13 @@ export class ScriptChunk {
     if (name !== undefined) {
       return name;
     }
-    throw new InvalidOpcodeError();
+    throw new Error("invalid opcode");
   }
 
   static fromString(str: string): ScriptChunk {
     const scriptChunk = new ScriptChunk();
     if (str.startsWith("0x")) {
-      scriptChunk.buf = SysBuf.from(str.slice(2), "hex");
+      scriptChunk.buf = WebBuf.from(str.slice(2), "hex");
       const len = scriptChunk.buf.length;
       const onebytelen = len <= 0xff;
       const twobytelen = len <= 0xffff;
@@ -63,7 +56,7 @@ export class ScriptChunk {
       } else if (fourbytelen) {
         scriptChunk.opcode = OP.PUSHDATA4;
       } else {
-        throw new TooMuchDataError();
+        throw new Error("too many bytes in the buffer to read");
       }
     } else {
       function isOpcodeName(str: string): str is OpcodeName {
@@ -73,7 +66,7 @@ export class ScriptChunk {
         const opcode = OP[str];
         scriptChunk.opcode = opcode;
       } else {
-        throw new InvalidOpcodeError();
+        throw new Error("invalid opcode");
       }
 
       scriptChunk.buf = undefined;
@@ -81,33 +74,33 @@ export class ScriptChunk {
     return scriptChunk;
   }
 
-  toBuf(): SysBuf {
+  toBuf(): WebBuf {
     const opcode = this.opcode;
     if (opcode === OP.PUSHDATA1 && this.buf) {
-      return SysBuf.concat([
-        SysBuf.from([opcode]),
+      return WebBuf.concat([
+        WebBuf.from([opcode]),
         new BufWriter().writeU8(new U8(this.buf.length)).toBuf(),
         this.buf,
       ]);
     }
     if (opcode === OP.PUSHDATA2 && this.buf) {
-      return SysBuf.concat([
-        SysBuf.from([opcode]),
+      return WebBuf.concat([
+        WebBuf.from([opcode]),
         new BufWriter().writeU16BE(new U16(this.buf.length)).toBuf(),
         this.buf,
       ]);
     }
     if (opcode === OP.PUSHDATA4 && this.buf) {
-      return SysBuf.concat([
-        SysBuf.from([opcode]),
+      return WebBuf.concat([
+        WebBuf.from([opcode]),
         new BufWriter().writeU32BE(new U32(this.buf.length)).toBuf(),
         this.buf,
       ]);
     }
-    return SysBuf.from([opcode]);
+    return WebBuf.from([opcode]);
   }
 
-  static fromBuf(buf: SysBuf): ScriptChunk {
+  static fromBuf(buf: WebBuf): ScriptChunk {
     const reader = new BufReader(buf);
     return ScriptChunk.fromBufReader(reader);
   }
@@ -120,20 +113,20 @@ export class ScriptChunk {
       const buffer = reader.read(len);
       const first = buffer[0];
       if (len === 0 || (len === 1 && first && first >= 1 && first <= 16)) {
-        throw new NonMinimalEncodingError();
+        throw new Error("non-minimal encoding");
       }
       chunk.buf = buffer;
     } else if (opcode === OP.PUSHDATA2) {
       const len = reader.readU16BE().n;
       if (len <= 0xff) {
-        throw new NonMinimalEncodingError();
+        throw new Error("non-minimal encoding");
       }
       const buffer = reader.read(len);
       chunk.buf = buffer;
     } else if (opcode === OP.PUSHDATA4) {
       const len = reader.readU32BE().n;
       if (len <= 0xffff) {
-        throw new NonMinimalEncodingError();
+        throw new Error("non-minimal encoding");
       }
       const buffer = reader.read(len);
       chunk.buf = buffer;
@@ -141,7 +134,7 @@ export class ScriptChunk {
     return chunk;
   }
 
-  static fromData(data: SysBuf): ScriptChunk {
+  static fromData(data: WebBuf): ScriptChunk {
     const len = data.length;
     if (len === 0) {
       return new ScriptChunk(Opcode.OP_0);
@@ -167,5 +160,12 @@ export class ScriptChunk {
       return new ScriptChunk(n + Opcode.OP_1 - 1);
     }
     return new ScriptChunk(0);
+  }
+
+  clone(): ScriptChunk {
+    return new ScriptChunk(
+      this.opcode,
+      this.buf ? WebBuf.from(this.buf) : undefined,
+    );
   }
 }

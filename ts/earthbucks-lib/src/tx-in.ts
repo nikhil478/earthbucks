@@ -1,10 +1,9 @@
 import { BufWriter } from "./buf-writer.js";
 import { BufReader } from "./buf-reader.js";
-import { Script } from "./script.js";
+import { Script, ScriptTemplateType } from "./script.js";
 import { VarInt } from "./var-int.js";
-import type { SysBuf } from "./buf.js";
+import { WebBuf } from "./buf.js";
 import { FixedBuf } from "./buf.js";
-import { EbxError } from "./error.js";
 import { U8, U16, U32, U64 } from "./numbers.js";
 
 export class TxIn {
@@ -25,7 +24,7 @@ export class TxIn {
     this.lockRel = lockRel;
   }
 
-  static fromBuf(buf: SysBuf): TxIn {
+  static fromBuf(buf: WebBuf): TxIn {
     const reader = new BufReader(buf);
     return TxIn.fromBufReader(reader);
   }
@@ -40,7 +39,7 @@ export class TxIn {
     return new TxIn(inputTxHash, inputTxIndex, script, lockRel);
   }
 
-  toBuf(): SysBuf {
+  toBuf(): WebBuf {
     const writer = new BufWriter();
     writer.write(this.inputTxId.buf);
     writer.writeU32BE(this.inputTxNOut);
@@ -62,12 +61,50 @@ export class TxIn {
     return this.lockRel.n === 0;
   }
 
-  isMintTx(): boolean {
-    return this.isNull() && this.isMinimalLock();
+  isExpiredInputScript(): boolean {
+    return this.script.isExpiredInput();
   }
 
-  static fromMintTx(script: Script): TxIn {
+  isStandardInputScript(): boolean {
+    return this.script.isStandardInput();
+  }
+
+  isMintTx(): boolean {
+    return this.isNull() && this.isMinimalLock() && this.script.isMintTxInput();
+  }
+
+  static fromMintTxScript(script: Script): TxIn {
     const emptyId = FixedBuf.alloc(32);
     return new TxIn(emptyId, new U32(0xffffffff), script, new U32(0));
+  }
+
+  static fromMintTxData(
+    blockMessageId: FixedBuf<32>,
+    domain: string,
+    nonce: FixedBuf<32> = FixedBuf.fromRandom(32),
+  ): TxIn {
+    const script = Script.fromPushOnly([
+      nonce.buf,
+      blockMessageId.buf,
+      WebBuf.from(domain, "utf8"),
+    ]);
+    return TxIn.fromMintTxScript(script);
+  }
+
+  getMintTxData(): {
+    nonce: FixedBuf<32>;
+    blockMessageId: FixedBuf<32>;
+    domain: string;
+  } {
+    return this.script.getMintTxData();
+  }
+
+  clone(): TxIn {
+    return new TxIn(
+      this.inputTxId.clone(),
+      new U32(this.inputTxNOut.n),
+      this.script.clone(),
+      new U32(this.lockRel.n),
+    );
   }
 }

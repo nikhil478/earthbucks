@@ -8,10 +8,12 @@ import {
   Header,
   PubKey,
   SigninChallenge,
-  SysBuf,
+  WebBuf,
   U256,
   U64,
   Domain,
+  Pkh,
+  WorkPack,
 } from "@earthbucks/lib";
 import { FixedBuf, PrivKey, SigninResponse } from "@earthbucks/lib";
 
@@ -79,34 +81,46 @@ export const createMineClient = (domain: string, sessionToken?: string) => {
         });
       },
     },
-    miningTestButton: {
-      getNewHeader: async () => {
-        const res = await trpcClient.miningTestButton.getNewHeader.query();
+    keys: {
+      createNewDerivedKey: async () => {
+        const res = await trpcClient.keys.createNewDerivedKey.mutate();
         return {
-          shareId: res.shareId,
-          shareTarget: U256.fromHex(res.shareTarget),
-          header: Header.fromHex(res.header),
-          lch10Ids: res.lch10Ids.map((idHex: string) =>
-            FixedBuf.fromHex(32, idHex),
-          ),
+          id: res.id,
+          clientPubKey: PubKey.fromHex(res.clientPubKey),
+          clientDerivationPrivKey: PrivKey.fromHex(res.clientDerivationPrivKey),
+          derivedPubKey: PubKey.fromHex(res.derivedPubKey),
+          derivedPkh: Pkh.fromHex(res.derivedPkh),
+          createdAt: res.createdAt,
         };
       },
-      postHeader: async (
+    },
+    miningButton: {
+      getNewWorkPack: async () => {
+        const res = await trpcClient.miningButton.getNewWorkPack.query();
+        return {
+          shareId: res.shareId,
+          retryTarget: U256.fromHex(res.retryTarget),
+          shareTarget: U256.fromHex(res.shareTarget),
+          workPack: WorkPack.fromHex(res.workPack),
+        };
+      },
+      postWorkPack: async (
         shareId: number,
-        header: Header,
+        workPack: WorkPack,
         count: number,
         duration: number,
       ) => {
-        await trpcClient.miningTestButton.postHeader.mutate({
+        const res = await trpcClient.miningButton.postWorkPack.mutate({
           shareId,
-          header: header.toHex(),
+          workPack: workPack.toHex(),
           count,
           duration,
         });
+        return res;
       },
     },
     userAvatar: {
-      uploadAvatar: async (avatarBuf: SysBuf) => {
+      uploadAvatar: async (avatarBuf: WebBuf) => {
         const avatar = avatarBuf.toString("base64");
         await trpcClient.userAvatar.uploadAvatar.mutate(avatar);
       },
@@ -130,6 +144,12 @@ export const createMineClient = (domain: string, sessionToken?: string) => {
       },
       setUserName: async (userName: string) => {
         await trpcClient.userName.setUserName.mutate(userName);
+      },
+    },
+    buttonConfig: {
+      setNButtons: async (nButtons: 1 | 2 | 3 | 4) => {
+        const res = await trpcClient.buttonConfig.setNButtons.mutate(nButtons);
+        return res;
       },
     },
   };
